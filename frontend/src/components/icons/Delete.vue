@@ -1,0 +1,5 @@
+<template>
+    <span class="material-symbols-outlined">
+        delete
+    </span>
+</template>
