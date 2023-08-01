@@ -1,3 +1,5 @@
+// checked
+
 const { ParentDetails, Parents, Children } = require('../models/model');
 const Error = require('http-errors');
 const { letters_24 } = require('../utils/common');
@@ -17,10 +19,12 @@ exports.create = async (req, res, next) => {
     }
 
     const check = await ParentDetails.exists({
-        name,
-        relationship,
-        child,
-        parents,
+        $and: [
+            { name: name },
+            { relationship: relationship },
+            { child: child },
+            { parents: parents },
+        ]
     });
 
     if (check) {
@@ -104,3 +108,33 @@ exports.find = async (req, res, next) => {
     }
 };
 
+exports.update = async (req, res, next) => {
+    const { name, gender, phone, email, address, relationship } = req.body;
+    const parentDetails_id = req.params.id;
+    if (!name || !gender || !phone || !email || !address || !relationship) {
+        return res.send({
+            error: true,
+            message: 'Missing required fields.',
+        })
+    }
+
+    const check = await ParentDetails.exists({
+        name, relationship,
+    });
+
+    if (check) {
+        return res.send({
+            error: true,
+            message: 'Already exists.',
+        });
+    }
+    try {
+        const document = await ParentDetails.findByIdAndUpdate(parentDetails_id, { name, gender, phone, email, address, relationship }, { new: true });
+        return res.send({
+            error: true,
+            message: document,
+        })
+    } catch (error) {
+        return next(Error(500, 'Error updating document'));
+    }
+}

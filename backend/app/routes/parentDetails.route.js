@@ -9,5 +9,6 @@ router.route('/')
 router.route('/:id')
     .delete(parentDetails.delete)
     .get(parentDetails.find)
+    .put(parentDetails.update)
 module.exports = router;
 

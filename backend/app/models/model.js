@@ -156,7 +156,9 @@ const Assignment = model.newModel('Assignment', {
 // ! 18
 const Account = model.newModel('Account', {
     name: model.stringTrue,
-    password: model.stringTrue,
+    password: {
+        type: String,
+    },
     role: { type: String, enum: ['child', 'teacher'], required: true },
 });
 
@@ -266,6 +268,15 @@ const Session = model.newModel('Session', {
     endTime: model.stringTrue,
     attendance: model.arrayId('Attendance'),
 });
+
+// CollectionRates.add({
+//     createdAt: { type: Date, default: Date.now },
+//     updatedAt: { type: Date, default: Date.now }
+// })
+// CollectionRates.pre('save', function (next) {
+//     this.updatedAt = Date.now();
+//     next();
+// });
 
 module.exports = {
     CollectionRates,

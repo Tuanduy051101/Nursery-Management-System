@@ -1,3 +1,5 @@
+// checked
+
 const { SchoolYear } = require('../models/model');
 const createError = require('http-errors');
 

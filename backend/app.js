@@ -42,6 +42,7 @@ const attendanceRouter = require('./app/routes/attendance.route');
 // const evaluateRouter = require('./app/routes/evaluate.route');
 const evaluateRouter = require('./app/routes/evaluate.route');
 const accountRouter = require('./app/routes/account.route');
+const mailRouter = require('./app/routes/mail.route');
 
 
 const app = express();
@@ -76,6 +77,7 @@ app.use('/api/nutritional', nutritionalRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/evaluate', evaluateRouter);
 app.use('/api/account', accountRouter);
+app.use('/api/mail', mailRouter);
 // app.use('/api/payment', paymentRouter);
 // app.use('/api/paymentDetail', paymentDetailRouter);
 

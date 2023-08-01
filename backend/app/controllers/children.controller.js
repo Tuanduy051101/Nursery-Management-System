@@ -1,6 +1,10 @@
+// checked
+
 const { Children, ParentDetails, Parents, Account } = require('../models/model');
 const Error = require('http-errors');
 const { letters_24 } = require('../utils/common');
+const { hashPassword } = require('./common/index.js');
+const nodemailer = require('nodemailer');
 
 exports.create = async (req, res, next) => {
     if (Object.keys(req.body).length === 0) {
@@ -22,14 +26,15 @@ exports.create = async (req, res, next) => {
     }
 
     try {
-        const check_child = await Children.exists({ name: c_name, gender: c_gender, birthday: c_birthday });
-        const check_account = await Account.exists({ name: user_name, password: password });
+        const check_child = await Children.exists({ $and: [{ name: c_name }, { gender: c_gender }, { birthday: c_birthday }] });
+        const check_account = await Account.exists({ $and: [{ name: user_name }] });
         if (check_child || check_account) {
             return res.send({ error: true, message: 'Already exists.' });
         }
 
         // create
-        const new_account = await Account.create({ name: user_name, password: password, role: role, });
+        const hashedPassword = await hashPassword(password);
+        const new_account = await Account.create({ name: user_name, password: hashedPassword, role: role, });
         const new_children = await Children.create({
             name: c_name,
             gender: c_gender,
@@ -48,6 +53,23 @@ exports.create = async (req, res, next) => {
         ];
 
         await Promise.all(updatePromises);
+
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: 'trantuanduy.20011105@gmail.com',
+                pass: 'yiavsqlfngxnxeod'
+            }
+        });
+        const mailOptions = {
+            from: 'trantuanduy.05112001@gmail.com',
+            to: p_email,
+            subject: 'Login',
+            text: `Username: ${user_name}, Password: ${password}.`
+            // html: html || null, // Sử dụng nội dung email dạng HTML của bạn hoặc nếu không có thì mặc định (null)
+        };
+
+        await transporter.sendMail(mailOptions);
 
         return res.send({ error: false, message: [new_account, new_children, new_parent, new_parentDetail] });
     } catch (error) {
