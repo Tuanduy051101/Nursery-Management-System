@@ -18,13 +18,14 @@
       </div>
       <span class="mt-5 ml-4 text-xl font-black text-white">Welcome to</span>
       <div class="flex mt-4">
-        <span class="text-green-500 text-2xl ml-2 uppercase tracking-widest"
+        <span class="text-green-500 text-xl ml-2 uppercase tracking-widest logo"
           >Nursery</span
         >
-        <span class="text-yellow-500 text-2xl ml-2 uppercase tracking-widest"
+        <span
+          class="text-yellow-500 text-xl ml-2 uppercase tracking-widest logo"
           >Management</span
         >
-        <span class="text-red-500 text-2xl ml-2 uppercase tracking-widest"
+        <span class="text-red-500 text-xl ml-2 uppercase tracking-widest logo"
           >System</span
         >
       </div>
@@ -43,7 +44,7 @@
             placeholder=""
             class="py-2 px-2 w-96 border bg-inherit border-solid border-slate-600 rounded-md focus:border-slate-300"
           />
-          <ErrorMessage class="ml-2 mt-2 text-red-500" name="userName" />
+          <ErrorMessage class="mt-2 text-red-500" name="userName" />
         </div>
         <div class="flex flex-col">
           <label for="password" class="mb-2 font-black text-lg">Password</label>
@@ -66,7 +67,7 @@
               autocomplete="off"
             />
           </div>
-          <ErrorMessage class="ml-2 mt-2 text-red-500" name="password" />
+          <ErrorMessage class="mt-2 text-red-500" name="password" />
         </div>
         <div class="flex flex-col mt-10">
           <input
@@ -81,10 +82,59 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { Form, Field, ErrorMessage } from "vee-validate";
-import * as yup from "yup";
-import Account from "../services/account.service";
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+} from "../assets/js/imports";
 
 const formSchema = yup.object().shape({
   userName: yup.string().required("Username needs to have value."),
@@ -95,29 +145,26 @@ const user = ref({
   username: "",
   password: "",
 });
-
+const router = useRouter();
 const showPassword = ref(false);
-
-const isLogin = ref(false);
 
 const login = async () => {
   try {
-    const user = await Account.signin({
-      name: user.username,
-      password: user.password,
+    const User = await Account.signin({
+      username: user.value.username,
+      password: user.value.password,
     });
 
-    if (user.error) {
-      console.log(user.message);
+    if (User.error) {
+      run_alert(alert_error(User.message));
     } else {
-
-    }
-
-    if (signinStatus.status == true) {
-      sessionStorage.setItem("userName", signinStatus.message.name);
-      sessionStorage.setItem("role", signinStatus.message.role);
-      // $emit('submit', true, sessionStorage.getItem('userName'), sessionStorage.getItem('role'));
-      // Nếu bạn muốn sử dụng $emit, hãy thêm Vue 2 Compatibility Build vào project của bạn.
+      sessionStorage.setItem("token", User.token);
+      sessionStorage.setItem("username", User.username);
+      sessionStorage.setItem("role", User.role);
+      sessionStorage.setItem("owner", User.owner);
+      run_alert(alert_success(User.message)).then(() => {
+        router.push({ name: "Dashboard" });
+      });
     }
   } catch (error) {
     console.log(error);

@@ -1,33 +1,33 @@
 // services
 const servicesPath = "../../services";
 
-import Account from `${servicesPath}/account.service`;
-import Assignment from `${servicesPath}/assignment.service`;
-import Attendance from `${servicesPath}/attendance.service`;
-import CDI from `${servicesPath}/cdi.service`;
-import Children from `${servicesPath}/children.service`;
-import Classes from `${servicesPath}/classes.service`;
-import CollectionRates from `${servicesPath}/collectionRates.service`;
-import Diploma from `${servicesPath}/diploma.service`;
-import Dish from `${servicesPath}/dish.service`;
-import Duty from `${servicesPath}/duty.service`;
-import Evaluate from `${servicesPath}/evaluate.service`;
-import Foodstuff from `${servicesPath}/foodstuff.service`;
-import Grade from `${servicesPath}/grade.service`;
-import Ingredient from `${servicesPath}/ingredient.service`;
-import Login from `${servicesPath}/login.service`;
-import Meal from `${servicesPath}/meal.service`;
-import MealTicket from `${servicesPath}/mealTicket.service`;
-import Month from `${servicesPath}/month.service`;
-import Parents from `${servicesPath}/parents.service`;
-import ParentDetails from `${servicesPath}/parentDetails.service`;
-import Payment from `${servicesPath}/payment.service`;
-import PaymentDetail from `${servicesPath}/paymentDetail.service`;
-import Position from `${servicesPath}/position.service`;
-import Receipt from `${servicesPath}/receipt.service`;
-import SchoolYear from `${servicesPath}/sYear.service`;
-import Teacher from `${servicesPath}/teacher.service`;
-import TuitionFees from `${servicesPath}/tuitionFees.service`;
+import Account from '../../services/account.service';
+import Assignment from '../../services/assignment.service';
+import Attendance from '../../services/attendance.service';
+import CDI from '../../services/cdi.service';
+import Children from '../../services/children.service';
+import Classes from '../../services/classes.service';
+import CollectionRates from '../../services/collectionRates.service';
+import Diploma from '../../services/diploma.service';
+import Dish from '../../services/dish.service';
+import Duty from '../../services/duty.service';
+import Evaluate from '../../services/evaluate.service';
+import Foodstuff from '../../services/foodstuff.service';
+import Grade from '../../services/grade.service';
+import Ingredient from '../../services/ingredient.service';
+// import Login from '../../services/login.service';
+import Meal from '../../services/meal.service';
+import MealTicket from '../../services/mealTicket.service';
+import Month from '../../services/month.service';
+import Parents from '../../services/parents.service';
+import ParentDetails from '../../services/parentDetails.service';
+import Payment from '../../services/payment.service';
+import PaymentDetail from '../../services/paymentDetail.service';
+import Position from '../../services/position.service';
+import Receipt from '../../services/receipt.service';
+import SchoolYear from '../../services/sYear.service';
+import Teacher from '../../services/teacher.service';
+import TuitionFees from '../../services/tuitionFees.service';
 
 // vue composition
 import { ref, reactive, watch, computed, onMounted, onUnmounted, watchEffect, provide, inject, onBeforeMount, } from 'vue';
@@ -38,7 +38,18 @@ import { useRoute, useRouter } from 'vue-router';
 // vee-validate
 import { Form, Field, ErrorMessage } from 'vee-validate';
 import * as yup from 'yup';
-import { validate, resetForm, isSubmitting, handleSubmit } from 'vee-validate';
+
+// sweetalert2
+import Swal from "sweetalert2";
+
+// components
+import Navbar from "../../components/layouts/Navbar.vue";
+import Sidebar from "../../components/layouts/Sidebar.vue";
+import Footer from "../../components/layouts/Footer.vue";
+import Login from "../../views/Login.vue";
+
+// alert
+import { alert_error, alert_warning, alert_success, run_alert } from './alert';
 
 export {
     // service
@@ -56,7 +67,6 @@ export {
     Foodstuff,
     Grade,
     Ingredient,
-    Login,
     Meal,
     MealTicket,
     Month,
@@ -75,9 +85,16 @@ export {
     useRoute, useRouter,
     // vee-validate
     Form, Field, ErrorMessage,
-    validate, resetForm, isSubmitting, handleSubmit,
     yup,
-    
+    // Swal
+    Swal,
+    // components
+    Navbar,
+    Sidebar,
+    Footer,
+    Login,
+    // alert
+    alert_error, alert_warning, alert_success, run_alert
 }
 
 

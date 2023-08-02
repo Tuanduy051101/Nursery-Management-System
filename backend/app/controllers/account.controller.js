@@ -69,6 +69,7 @@ exports.signin = async (req, res, next) => {
             username: user.name,
             role: user.role,
             owner: owner,
+            message: 'Signed in successfully.'
         });
     } catch (error) {
         console.log(error);
