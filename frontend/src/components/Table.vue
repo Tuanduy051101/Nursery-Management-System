@@ -1,66 +1,82 @@
 <template>
-  <table class="border-collapse w-full" :class="mode == 0 || mode == `auto` ? 'table-auto' : 'table-fixed' ">
+  <table
+    class="border-collapse w-full"
+    :class="mode == 0 || mode == `auto` ? 'table-auto' : 'table-fixed'"
+  >
     <thead>
       <tr
         class="text-slate-300 border border-solid border-slate-600 border-l-0 uppercase text-base"
         :class="borderR ? '' : 'border-r-0'"
       >
+        <th class="p-2">
+          <input type="checkbox" class="float-left" v-model="ischecked" />
+        </th>
         <th class="p-2"><span class="float-left">#</span></th>
         <th class="p-2 relative" v-for="(field, index) in fields" :key="index">
           <span class="float-left">{{ field }}</span>
         </th>
-        <th v-if="mode == 0 || mode == `auto`" class="w-24"><span class="float-right pr-2">Actions</span></th>
-        <th v-if="mode == 1" class="p-2"><span class="float-right">Actions</span></th>
+        <th
+          v-if="(mode == 0 || mode == `auto`) && showAction.length > 0"
+          class="w-24"
+        >
+          <span class="float-right pr-2">Actions</span>
+        </th>
+        <th v-if="mode == 1 && showAction.length > 0" class="p-2">
+          <span class="float-right">Actions</span>
+        </th>
       </tr>
     </thead>
     <tbody>
       <tr
-        class="text-slate-300 border border-solid border-slate-600 border-l-0 border-r-0 text-base lowercase hover:border-slate-300"
+        class="text-slate-300 whitespace-normal border border-solid border-slate-600 border-l-0 border-r-0 text-base lowercase hover:border-slate-300"
         v-for="(item, index) in items"
         :key="item._id"
       >
+        <td class="p-2">
+          <input
+            v-model="item.checked"
+            class="float-left"
+            type="checkbox"
+            name=""
+            id=""
+          />
+        </td>
         <td class="p-2">
           <router-link
             :to="{ name: actionList[0], params: { id: item._id } }"
             class="float-left text-blue-500"
           >
-            #{{ sliceID(item._id, index) }}
+            #{{ sliceID(item._id, index + startRow) }}
           </router-link>
         </td>
-        <td v-for="(label, index) in labels" :key="index" class="p-2">
-          <span class="float-left">{{ setGender(label, item[label]) }}</span>
+        <td
+          v-for="(label, index) in labels"
+          :key="index"
+          class="p-2 whitespace-normal"
+        >
+          <span class="float-left whitespace-normal">{{
+            setGender(label, item[label])
+          }}</span>
         </td>
-        <td class="p-2">
-          <router-link
-            :to="{ name: actionList[0], params: { id: item._id } }"
-            class="ml-2 pt-2 pl-1"
-          >
-            <IDetail
-              class="text-lg text-slate-600 hover:text-slate-300 cursor-pointer"
-            />
-          </router-link>
-
-          <!-- edit
-          <router-link
-            v-if="actionList.length > 1"
-            :to="{ name: actionList[1], params: { id: item._id } }"
-            class=""
-          >
-            <IEdit
-              class="text-lg text-yellow-900 hover:text-yellow-300 cursor-pointer float-right pt-2 px-1"
-            />
-          </router-link>
-          <IEdit
-            v-else
-            @click="updateItem(item._id)"
-            class="text-lg text-yellow-900 hover:text-yellow-300 cursor-pointer float-right pt-2 px-1"
-          /> -->
-
-          <!-- delete -->
-          <IDelete
-            @click="deleteItem(item._id)"
-            class="text-lg text-red-900 hover:text-red-500 cursor-pointer ml-2 pt-2 px-1"
-          />
+        <td class="p-2" v-if="showAction.length > 0">
+          <div class="flex items-center justify-center">
+            <router-link
+              :to="{ name: actionList[0], params: { id: item._id } }"
+              v-if="showAction[0]"
+            >
+              <i class="bi bi-eye cursor-pointer hover:text-blue-500"></i>
+            </router-link>
+            <i
+              v-if="showAction[1]"
+              class="bi bi-pencil-square mx-2 cursor-pointer hover:text-yellow-500"
+              @click="$emit('edit', item._id)"
+            ></i>
+            <i
+              v-if="showAction[2]"
+              class="bi bi-trash cursor-pointer hover:text-red-500"
+              @click="$emit('delete', item)"
+            ></i>
+          </div>
         </td>
       </tr>
     </tbody>
@@ -105,9 +121,31 @@ export default {
     borderR: {
       type: Boolean,
       default: false,
+    },
+    showAction: {
+      type: Array,
+      default: [true, true, true],
+    },
+    startRow: {
+      type: Number,
+      default: 1,
     }
   },
   emits: ["update:activeAction", "deleteItem", "update:item"],
+  data() {
+    return {
+      ischecked: false,
+    };
+  },
+  watch: {
+    ischecked(newVal) {
+      if (this.items) {
+        this.items.forEach((item) => {
+          item.checked = newVal;
+        });
+      }
+    },
+  },
   methods: {
     sliceID(id, index) {
       return id.substring(18, 22).concat(index);

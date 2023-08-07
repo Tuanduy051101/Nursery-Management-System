@@ -9,5 +9,6 @@ router.route('/')
 router.route('/:id')
     .delete(collectionRates.delete)
     .get(collectionRates.find)
+    .put(collectionRates.update)
 module.exports = router;
 

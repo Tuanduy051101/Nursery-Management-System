@@ -73,7 +73,7 @@
           <input
             type="submit"
             value="Login"
-            class="w-96 border border-solid rounded-md py-2 border-blue-700 text-blue-700 text-xl hover:bg-blue-700 hover:text-white cursor-pointer"
+            class="w-96 border border-solid rounded-md py-2 border-blue-700 text-xl hover:bg-blue-700 hover:text-white cursor-pointer"
           />
         </div>
       </Form>
@@ -163,6 +163,8 @@ const login = async () => {
       sessionStorage.setItem("role", User.role);
       sessionStorage.setItem("owner", User.owner);
       run_alert(alert_success(User.message)).then(() => {
+        sessionStorage.setItem("activeIndex", '1000');
+        sessionStorage.removeItem("activeIndexChild");
         router.push({ name: "Dashboard" });
       });
     }

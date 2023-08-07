@@ -5,7 +5,7 @@
     <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
     <div
       class="bg-slate-800 mx-5 w-4/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
-      style="max-height: 100vh; min-height: 100px;"
+      style="max-height: 100vh; min-height: 100px"
     >
       <div
         class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
@@ -24,47 +24,48 @@
             v-if="name != `CollectionRates` && name != `Classes`"
             class="flex flex-col text-slate-300"
           >
-            <label for="name" class="mb-1 -mt-2.5 ml-1 flex items-center"
-              >Name<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <label for="name" class="mb-1 -mt-2.5 flex items-center"
+              >Name<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
             <Field
               v-model="item.name"
-              class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+              class="bg-inherit rounded-md px-2 py-1.5 -mt-2.5 border border-solid focus:border-slate-300"
               name="name"
               type="text"
               placeholder=""
               :class="!item.name ? 'border-red-500' : 'border-slate-600'"
+              autocomplete="off"
             />
-            <ErrorMessage name="name" class="text-red-500 mt-1 ml-1 text-sm" />
+            <ErrorMessage name="name" class="text-red-500 mt-2 text-sm" />
           </div>
 
-          <div
-            v-if="name == 'grade'"
-            class="flex flex-col text-slate-300 mt-5"
-          >
-            <label for="name" class="mb-1 -mt-2.5 ml-1 flex items-center"
-              >Description<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
-                >*</span
-              ></label
-            >
+          <div v-if="name == 'grade'" class="flex flex-col text-slate-300 mt-5">
+            <label for="name" class="mb-1 flex items-center"
+              >Description<span
+                class="text-red-500 text-3xl relative ml-0.5"
+              ></span
+            ></label>
             <Field
               v-model="item.description"
               class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
               name="description"
               type="text"
               placeholder=""
-              :class="!item.description ? 'border-red-500' : 'border-slate-600'"
+              autocomplete="off"
+              :class="
+                !item.description ? 'border-slate-600' : 'border-slate-600'
+              "
             />
-            <ErrorMessage name="description" class="text-red-500 mt-1 ml-1 text-sm" />
+            <!-- <ErrorMessage name="description" class="text-red-500 mt-2 text-sm" /> -->
           </div>
 
           <!-- Duty -->
           <div v-if="name == `Duty`" class="flex flex-col text-slate-300">
             <label for="description" class="mb-1 mt-2.5 ml-1 flex items-center"
               >Description<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -74,6 +75,7 @@
               name="description"
               type="text"
               placeholder=""
+              autocomplete="off"
               :class="!item.description ? 'border-red-500' : 'border-slate-600'"
             />
             <ErrorMessage
@@ -88,9 +90,8 @@
             v-if="name == `CollectionRates`"
             class="flex flex-col text-slate-300"
           >
-            <label for="" class="mb-1 -mt-2.5 ml-1 flex items-center"
-              >School year<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <label for="" class="mb-1 -mt-2.5 flex items-center"
+              >School year<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
@@ -101,7 +102,7 @@
               :modelValue="mSYear.name"
               :class="!item.schoolYear ? 'border-red-500' : 'border-slate-600'"
             />
-            <span v-if="!item.schoolYear" class="text-red-500 mt-1 ml-1 text-sm"
+            <span v-if="!item.schoolYear" class="text-red-500 mt-2 text-sm"
               >Please select a value !</span
             >
           </div>
@@ -110,8 +111,8 @@
             v-if="name == `CollectionRates`"
             class="flex flex-col text-slate-300"
           >
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Grade<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <label for="" class="mb-1 mt-2.5 flex items-center"
+              >Grade<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
@@ -122,7 +123,7 @@
               :modelValue="mGrade.name"
               :class="!item.grade ? 'border-red-500' : 'border-slate-600'"
             />
-            <span v-if="!item.grade" class="text-red-500 mt-1 ml-1 text-sm"
+            <span v-if="!item.grade" class="text-red-500 mt-2 text-sm"
               >Please select a value !</span
             >
           </div>
@@ -131,9 +132,8 @@
             v-if="name == `CollectionRates`"
             class="flex flex-col text-slate-300"
           >
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Tuition fees<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <label for="" class="mb-1 mt-2.5 flex items-center"
+              >Tuition fees<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
@@ -144,9 +144,7 @@
               :modelValue="mTFees.name"
               :class="!item.tuitionFees ? 'border-red-500' : 'border-slate-600'"
             />
-            <span
-              v-if="!item.tuitionFees"
-              class="text-red-500 mt-1 ml-1 text-sm"
+            <span v-if="!item.tuitionFees" class="text-red-500 mt-2 text-sm"
               >Please select a value !</span
             >
           </div>
@@ -155,34 +153,39 @@
             v-if="name == `CollectionRates`"
             class="flex flex-col text-slate-300"
           >
-            <label for="money" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Money<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <label for="money" class="mb-1 mt-2.5 flex items-center"
+              >Money<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
             <Field
-              v-model="item.money"
+            :value="item.money_d"
+              @input="$emit('money', $event.target.value)"
               class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
               name="money"
-              style="letter-spacing: 5px"
               type="text"
               placeholder=""
-              @input="formatMoney(item.money)"
               :class="
-                !item.money || errors.money
+                !item.money
                   ? 'border-red-500'
                   : 'border-slate-600'
               "
-              value="abc"
+              autocomplete="off"
             />
-            <ErrorMessage name="money" class="text-red-500 mt-1 ml-1 text-sm" />
+            <span v-if="item.money" class="text-red-500 mt-2 text-sm"
+              >{{ item.money_d }}</span
+            >
+            <span v-if="!item.money" class="text-red-500 mt-2 text-sm"
+              >'Money' must have a value !</span
+            >
+            <!-- <ErrorMessage name="money" class="text-red-500 mt-2 text-sm" /> -->
           </div>
           <!-- !Classes -->
           <!-- Amount classes -->
           <div v-if="name == `Classes`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
               >Amount classes<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -193,6 +196,7 @@
               style=""
               type="number"
               placeholder=""
+              autocomplete="off"
               :class="
                 !item.amountClasses || errors.amountClasses
                   ? 'border-red-500'
@@ -208,7 +212,7 @@
           <div v-if="name == `Classes`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
               >School year<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -226,7 +230,7 @@
           <!-- grade -->
           <div v-if="name == `Classes`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Grade<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              >Grade<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -245,7 +249,7 @@
           <!-- gender -->
           <div v-if="name == `Teacher`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Gender<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              >Gender<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -268,7 +272,7 @@
           <!-- phone -->
           <div v-if="name == `Teacher`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Phone<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              >Phone<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -279,6 +283,7 @@
               style=""
               type="text"
               placeholder=""
+              autocomplete="off"
               :class="
                 !item.phone || errors.phone
                   ? 'border-red-500'
@@ -290,7 +295,7 @@
           <!-- email -->
           <div v-if="name == `Teacher`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >E-mail<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              >E-mail<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -301,6 +306,7 @@
               style=""
               type="text"
               placeholder=""
+              autocomplete="off"
               :class="
                 !item.email || errors.email
                   ? 'border-red-500'
@@ -312,8 +318,7 @@
           <!-- address -->
           <div v-if="name == `Teacher`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Address<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              >Address<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -324,6 +329,7 @@
               style=""
               type="text"
               placeholder=""
+              autocomplete="off"
               :class="
                 !item.address || errors.address
                   ? 'border-red-500'
@@ -338,7 +344,8 @@
           <!-- Position -->
           <div v-if="name == `Teacher`" class="flex flex-col text-slate-300">
             <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Position<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              >Position<span
+                class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
                 >*</span
               ></label
             >
@@ -355,9 +362,14 @@
           </div>
           <button
             @click="submit"
-            class="text-slate-300 border border-solid border-green-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:bg-green-500 mt-5 hover:text-slate-100"
+            class="text-slate-300 border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:text-slate-100"
+            :class="[
+              buttonName == 'Add'
+                ? 'border-green-500 hover:bg-green-500'
+                : 'border-yellow-500 hover:bg-yellow-500',
+            ]"
           >
-            Add
+            {{ buttonName }}
           </button>
         </Form>
       </div>
@@ -400,6 +412,10 @@ export default {
       type: String,
       default: "",
     },
+    buttonName: {
+      type: String,
+      default: "Add",
+    },
   },
   emits: ["cancel", "submit"],
   watch: {
@@ -410,9 +426,9 @@ export default {
   },
   data() {
     const formSchema = yup.object().shape({
-      name: yup.string().required("Name must have a value !"),
+      name: yup.string().required(`"Name" must have a value !`),
       description: yup.string().required("Description must have a value !"),
-      money: yup.number().min(10000, "Minimum value is 10.000 vnd !"),
+      // money: yup.number().min(10000, "Minimum value is 10.000 vnd !"),
       amountClasses: yup.number().max(10, "Maximum value is 10 !"),
       phone: yup
         .string()

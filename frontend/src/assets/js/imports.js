@@ -47,10 +47,28 @@ import Navbar from "../../components/layouts/Navbar.vue";
 import Sidebar from "../../components/layouts/Sidebar.vue";
 import Footer from "../../components/layouts/Footer.vue";
 import Login from "../../views/Login.vue";
+import BAdd from "../../components/buttons/Add.vue";
+import BEdit from "../../components/buttons/Edit.vue";
+import BDelete from "../../components/buttons/Delete.vue";
+import BCancel from "../../components/buttons/Cancel.vue";
+import FSelect from "../../components/forms/Select.vue";
+import FSearch from "../../components/forms/Search.vue";
+import Pagination from "../../components/Pagination.vue";
+import FormOne from "../../components/forms/FormOne.vue";
+import ASuccess from "../../components/alerts/Success.vue";
+import Table from "../../components/Table.vue";
 
 // alert
-import { alert_error, alert_warning, alert_success, run_alert } from './alert';
+import { alert_error, alert_warning, alert_success, run_alert, alert_input_1, alert_remove } from './alert';
 
+// image letters
+import VueLetterAvatar from "vue-letter-avatar";
+
+// http 
+import { http_getAll, http_getOne, http_deleteOne, http_create, http_update } from '../../assets/js/http';
+
+// format money
+import { formatCurrencyVND, convertToWords } from '../../assets/js/money';
 export {
     // service
     Account,
@@ -93,8 +111,24 @@ export {
     Sidebar,
     Footer,
     Login,
+    BAdd,
+    BEdit,
+    BDelete,
+    BCancel,
+    FSelect,
+    FSearch,
+    Table,
+    Pagination,
+    FormOne,
+    ASuccess,
     // alert
-    alert_error, alert_warning, alert_success, run_alert
+    alert_error, alert_warning, alert_success, run_alert, alert_input_1, alert_remove,
+    // image letters
+    VueLetterAvatar,
+    // https
+    http_getAll, http_getOne, http_deleteOne, http_create, http_update,
+    // format money
+    formatCurrencyVND, convertToWords,
 }
 
 

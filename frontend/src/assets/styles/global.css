@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Barlow+Semi+Condensed:ital,wght@0,500;1,300&family=Charm&family=Cormorant:wght@300&family=Freehand&family=Fuggles&family=Island+Moments&family=Josefin+Sans&family=Kalam:wght@300&family=Lobster&family=Nabla&family=Noto+Serif+HK:wght@200;900&family=Open+Sans:ital,wght@1,300&family=Roboto+Condensed:wght@300;400&family=Roboto:wght@100&family=Source+Serif+Pro:ital,wght@0,200;0,400;1,300&family=Stick+No+Bills&family=Ubuntu&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Barlow+Semi+Condensed:ital,wght@0,500;1,300&family=Charm&family=Cormorant:wght@300&family=Fuggles&family=Island+Moments&family=Nabla&family=Noto+Serif+HK:wght@200;900&family=Open+Sans:ital,wght@1,300&family=Roboto+Condensed:wght@300;400&family=Roboto:wght@100&family=Source+Serif+Pro:ital,wght@0,200;0,400;1,300&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Barlow+Semi+Condensed:ital,wght@0,500;1,300&family=Charm&family=Cormorant:wght@300&family=Freehand&family=Fuggles&family=Island+Moments&family=Lobster&family=Nabla&family=Noto+Serif+HK:wght@200;900&family=Open+Sans:ital,wght@1,300&family=Roboto+Condensed:wght@300;400&family=Roboto:wght@100&family=Source+Serif+Pro:ital,wght@0,200;0,400;1,300&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Geologica:wght@300&family=Inconsolata:wght@200;300;400;700&family=Kablammo&family=Kanit:wght@300&family=Merriweather:wght@300&family=Moirai+One&family=Orbit&family=Outfit:wght@100&family=Roboto+Serif:ital,wght@0,500;1,500;1,900&family=Roboto:wght@300&family=Sora:wght@100&family=Space+Grotesk:wght@300&family=Yeseva+One&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Geologica:wght@300&family=Inconsolata:wght@200;300;400;700&family=Kablammo&family=Kanit:wght@300&family=Merriweather:wght@300&family=Moirai+One&family=Orbit&family=Outfit:wght@100&family=Roboto+Serif:ital,wght@0,500;1,500;1,900&family=Roboto:wght@300&family=Sora:wght@100&family=Space+Grotesk:wght@300&family=Yeseva+One&display=swap");
 
 :root {
   /* font */
@@ -60,6 +60,10 @@ input {
   outline: none;
 }
 
+._bg-inherit {
+  background-color: rgb(30 41 59 / var(--tw-bg-opacity));
+}
+
 .logo {
   font-family: var(--font-logo);
 }
@@ -70,10 +74,10 @@ input {
 }
 
 .custom-toast {
-    max-width: 500px;
-  }
+  max-width: 500px;
+}
 
-  .custom-toast-content {
-    /* Định dạng chiều rộng linh hoạt */
-    word-wrap: break-word;
-  }
+.custom-toast-content {
+  /* Định dạng chiều rộng linh hoạt */
+  word-wrap: break-word;
+}

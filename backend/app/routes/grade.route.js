@@ -9,5 +9,6 @@ router.route('/')
 router.route('/:id')
     .delete(grade.delete)
     .get(grade.find)
+    .put(grade.update)
 module.exports = router;
 
