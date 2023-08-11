@@ -28,8 +28,11 @@ exports.create = async (req, res, next) => {
     try {
         const check_child = await Children.exists({ $and: [{ name: c_name }, { gender: c_gender }, { birthday: c_birthday }] });
         const check_account = await Account.exists({ $and: [{ name: user_name }] });
-        if (check_child || check_account) {
-            return res.send({ error: true, message: 'Already exists.' });
+        if (check_child) {
+            return res.send({ error: true, message: 'Already exists child.' });
+        }
+        if (check_account) {
+            return res.send({ error: true, message: 'Already exists account.' });
         }
 
         // create
@@ -71,7 +74,7 @@ exports.create = async (req, res, next) => {
 
         await transporter.sendMail(mailOptions);
 
-        return res.send({ error: false, message: [new_account, new_children, new_parent, new_parentDetail] });
+        return res.send({ error: false, message: 'Successfully created.' });
     } catch (error) {
         console.log(error);
         return next(Error(500, 'Error saving'));
@@ -130,7 +133,10 @@ exports.delete = async (req, res, next) => {
         }
         await Parents.findByIdAndDelete(result.parentDetails[0].parents);
         await Account.findByIdAndDelete(result.account);
-        return res.send(result);
+        return res.send({
+            error: false,
+            message: 'Successfully deleted.'
+        });
     } catch (error) {
         return next(Error(500, 'Error deleting document'));
     }
@@ -181,8 +187,27 @@ exports.find = async (req, res, next) => {
 exports.update = async (req, res, next) => {
     try {
         const { name, gender, birthday, address } = req.body;
-        const child = await Children.findByIdAndUpdate(req.params.id, { name, gender, birthday, address }, { new: true });
-        return res.send({ error: false, message: child });
+        const _id = req.params.id;
+        if (!name || !gender || !birthday || !address) {
+            return res.send({
+                error: true,
+                message: 'Missing required fields.',
+            });
+        }
+        const check_child = await Children.exists({ $and: [{ name: name }, { gender: gender }, { birthday: birthday }] });
+        if (check_child) {
+            const check_info = await Children.exists({
+                _id: _id,
+                address: address,
+            });
+            if (!check_info) {
+                await Children.findByIdAndUpdate(_id, { address });
+                return res.send({ error: false, message: 'Successfully updated.' });
+            }
+            return res.send({ error: true, message: 'Already exists child.' });
+        }
+        await Children.findByIdAndUpdate(_id, { name, gender, birthday, address });
+        return res.send({ error: false, message: 'Successfully updated.' });
     } catch (error) {
         return next(Error(500, 'Error updating'));
     }

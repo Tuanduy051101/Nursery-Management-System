@@ -92,8 +92,10 @@ exports.find = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
     try {
+        console.log(req.body);
         const { money } = req.body;
         const _id = req.params.id;
+        console.log(money);
 
         if (!money) {
             return res.send({

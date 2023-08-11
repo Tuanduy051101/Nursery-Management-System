@@ -38,7 +38,10 @@
               :class="!item.name ? 'border-red-500' : 'border-slate-600'"
               autocomplete="off"
             />
-            <ErrorMessage name="name" class="text-red-500 mt-2 text-sm" />
+            <ErrorMessage
+              name="name"
+              class="text-red-500 ml-0.5 mt-2 text-sm"
+            />
           </div>
 
           <div v-if="name == 'grade'" class="flex flex-col text-slate-300 mt-5">
@@ -80,7 +83,7 @@
             />
             <ErrorMessage
               name="description"
-              class="text-red-500 mt-1 ml-1 text-sm"
+              class="text-red-500 mt-1 ml-0.5 text-sm"
             />
           </div>
 
@@ -99,10 +102,13 @@
               @update:modelValue="(value) => (item.schoolYear = value)"
               @update="(value) => (runGet = value)"
               :options="sYear"
-              :modelValue="mSYear.name"
+              :disabled="disabled"
+              :modelValue="mSYear.name ? mSYear.name : ''"
               :class="!item.schoolYear ? 'border-red-500' : 'border-slate-600'"
             />
-            <span v-if="!item.schoolYear" class="text-red-500 mt-2 text-sm"
+            <span
+              v-if="!item.schoolYear"
+              class="text-red-500 ml-0.5 mt-2 text-sm"
               >Please select a value !</span
             >
           </div>
@@ -121,9 +127,10 @@
               @update="(value) => (runGet = value)"
               :options="grade"
               :modelValue="mGrade.name"
+              :disabled="disabled"
               :class="!item.grade ? 'border-red-500' : 'border-slate-600'"
             />
-            <span v-if="!item.grade" class="text-red-500 mt-2 text-sm"
+            <span v-if="!item.grade" class="text-red-500 ml-0.5 mt-2 text-sm"
               >Please select a value !</span
             >
           </div>
@@ -142,9 +149,12 @@
               @update="(value) => (runGet = value)"
               :options="tFees"
               :modelValue="mTFees.name"
+              :disabled="disabled"
               :class="!item.tuitionFees ? 'border-red-500' : 'border-slate-600'"
             />
-            <span v-if="!item.tuitionFees" class="text-red-500 mt-2 text-sm"
+            <span
+              v-if="!item.tuitionFees"
+              class="text-red-500 ml-0.5 mt-2 text-sm"
               >Please select a value !</span
             >
           </div>
@@ -159,33 +169,66 @@
               ></label
             >
             <Field
-            :value="item.money_d"
+              :value="item.money_d"
               @input="$emit('money', $event.target.value)"
               class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
               name="money"
               type="text"
               placeholder=""
-              :class="
-                !item.money
-                  ? 'border-red-500'
-                  : 'border-slate-600'
-              "
+              :class="!item.money ? 'border-red-500' : 'border-slate-600'"
               autocomplete="off"
             />
-            <span v-if="item.money" class="text-red-500 mt-2 text-sm"
-              >{{ item.money_d }}</span
-            >
-            <span v-if="!item.money" class="text-red-500 mt-2 text-sm"
+            <span v-if="item.money" class="text-red-500 ml-0.5 mt-2 text-sm">{{
+              item.money_d
+            }}</span>
+            <span v-if="!item.money" class="text-red-500 ml-0.5 mt-2 text-sm"
               >'Money' must have a value !</span
             >
             <!-- <ErrorMessage name="money" class="text-red-500 mt-2 text-sm" /> -->
           </div>
           <!-- !Classes -->
+          <!-- school year -->
+          <div v-if="name == `Classes` && buttonName == 'Add'" class="flex flex-col text-slate-300">
+            <label for="" class="flex items-center"
+              >School year<span
+                class="text-red-500 text-3xl relative ml-0.5"
+                >*</span
+              ></label
+            >
+            <FSelect
+              @update:modelValue="(value) => (item.schoolYear = value)"
+              @update="(value) => (runGet = value)"
+              :options="sYear"
+              :modelValue="mSYear.name"
+              :class="!item.schoolYear ? 'border-red-500' : 'border-slate-600'"
+            />
+            <span v-if="!item.schoolYear" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >"School year" must have a value.</span
+            >
+          </div>
+          <!-- grade -->
+          <div v-if="name == `Classes` && buttonName == 'Add'" class="flex flex-col text-slate-300">
+            <label for="" class="mt-2.5 flex items-center"
+              >Grade<span class="text-red-500 text-3xl relative ml-0.5"
+                >*</span
+              ></label
+            >
+            <FSelect
+              @update:modelValue="(value) => (item.grade = value)"
+              @update="(value) => (runGet = value)"
+              :options="grade"
+              :modelValue="mGrade.name"
+              :class="!item.grade ? 'border-red-500' : 'border-slate-600'"
+            />
+            <span v-if="!item.grade" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >"Grade" must have a value.</span
+            >
+          </div>
           <!-- Amount classes -->
-          <div v-if="name == `Classes`" class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
+          <div v-if="name == `Classes` && buttonName == 'Add'" class="flex flex-col text-slate-300">
+            <label for="" class="mt-2.5 flex items-center"
               >Amount classes<span
-                class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
+                class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
@@ -205,44 +248,54 @@
             />
             <ErrorMessage
               name="amountClasses"
-              class="text-red-500 mt-1 ml-1 text-sm"
+              class="text-red-500 mt-2 ml-0.5 text-sm"
+            />
+            <span v-if="!item.amountClasses" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >"Amount classes" must have a value.</span
+            >
+          </div>
+          <!-- Amount children -->
+          <div v-if="name == `Classes` && buttonName == 'Add'" class="flex flex-col text-slate-300">
+            <label for="" class="mt-2.5 my-2 flex items-center"
+              >Amount children</label
+            >
+            <Field
+              v-model="item.amountChildren"
+              class="bg-inherit rounded-md px-2 py-1.5 border border-solid border-slate-600 focus:border-slate-300"
+              name="amountChildren"
+              style=""
+              type="number"
+              placeholder=""
+              autocomplete="off"
+            />
+            <ErrorMessage
+              name="amountChildren"
+              class="text-red-500 mt-2 ml-0.5 text-sm"
             />
           </div>
-          <!-- school year -->
-          <div v-if="name == `Classes`" class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >School year<span
-                class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
+          <!-- edit name class -->
+          <div v-if="name == `Classes` && buttonName == 'Edit'" class="flex flex-col text-slate-300">
+            <label for="" class="flex items-center"
+              >Class name<span
+                class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
-            <FSelect
-              @update:modelValue="(value) => (item.schoolYear = value)"
-              @update="(value) => (runGet = value)"
-              :options="sYear"
-              :modelValue="mSYear.name"
-              :class="!item.schoolYear ? 'border-red-500' : 'border-slate-600'"
+            <Field
+              v-model="item.name"
+              class="bg-inherit rounded-md px-2 py-1.5 border border-solid border-slate-600 focus:border-slate-300"
+              name="className"
+              style=""
+              type="text"
+              placeholder=""
+              autocomplete="off"
             />
-            <span v-if="!item.schoolYear" class="text-red-500 mt-1 ml-1 text-sm"
-              >Please select a value !</span
-            >
-          </div>
-          <!-- grade -->
-          <div v-if="name == `Classes`" class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Grade<span class="text-red-500 text-3xl mt-2.5 relative ml-0.5"
-                >*</span
-              ></label
-            >
-            <FSelect
-              @update:modelValue="(value) => (item.grade = value)"
-              @update="(value) => (runGet = value)"
-              :options="grade"
-              :modelValue="mGrade.name"
-              :class="!item.grade ? 'border-red-500' : 'border-slate-600'"
+            <ErrorMessage
+              name="className"
+              class="text-red-500 mt-2 ml-0.5 text-sm"
             />
-            <span v-if="!item.grade" class="text-red-500 mt-1 ml-1 text-sm"
-              >Please select a value !</span
+            <span v-if="!item.name" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >"Class name" must have a value.</span
             >
           </div>
           <!-- !Teacher -->
@@ -361,7 +414,7 @@
             >
           </div>
           <button
-            @click="submit"
+            @click="$emit('submit')"
             class="text-slate-300 border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:text-slate-100"
             :class="[
               buttonName == 'Add'
@@ -416,6 +469,10 @@ export default {
       type: String,
       default: "Add",
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["cancel", "submit"],
   watch: {
@@ -445,7 +502,9 @@ export default {
       sYear: [],
       tFees: [],
       grade: [],
-      mSYear: {},
+      mSYear: {
+        name: "",
+      },
       mTFees: {},
       mGrade: {},
       runGet: false,

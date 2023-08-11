@@ -1,56 +1,9 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md mb-5">
-    <!-- class detail -->
-    <div class="flex justify-center mb-5">
-      <div
-        class="border border-solid border-t-0 border-slate-600 rounded-br-md rounded-bl-md px-5 py-5"
-      >
-        <!-- title -->
-        <p class="text-slate-300 text-lg text-center">
-          <span
-            class="border border-solid px-5 py-1 border-slate-600 rounded-md"
-            >Class Details</span
-          >
-        </p>
-        <div class="flex text-slate-300 mt-5">
-          <!-- class info -->
-          <div class="flex mx-5">
-            <div class="flex-col">
-              <p class="">ClassName:</p>
-              <p class="">Grade:</p>
-              <p class="">School Year:</p>
-              <p class="">Total Children:</p>
-            </div>
-            <div class="flex-col ml-2 text-blue-500">
-              <p class="">{{ item.name }}</p>
-              <p class="">{{ item.grade }}</p>
-              <p class="">{{ item.schoolYear }}</p>
-              <p class="">{{ item.children }}</p>
-            </div>
-          </div>
-          <!-- teacher info -->
-          <!-- <div class="flex ml-5" v-for="(value, index) of teacher">
-            <div
-              class="flex-col pl-5 border border-solid border-t-0 border-b-0 border-r-0 border-slate-600"
-            >
-              <p class="">Teacher's Name:</p>
-              <p class="">Phone Number:</p>
-              <p class="">Email Address:</p>
-              <p class="">Position:</p>
-            </div>
-            <div class="flex-col ml-2 text-blue-500">
-              <p class="">{{ value.name }}</p>
-              <p class="">{{ value.phone }}</p>
-              <p class="">{{ value.email }}</p>
-              <p class="">{{ value.position }}</p>
-            </div>
-          </div> -->
-        </div>
-      </div>
-    </div>
-    <!-- list of children or cdi or receipt -->
-    <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
-    <div class="flex justify-end mx-5 mb-5 text-slate-600">
+  <div
+    v-if="item?.name"
+    class="border border-solid border-slate-600 rounded-md mb-5"
+  >
+    <div class="flex justify-end mx-5 my-5 text-slate-600">
       <div
         class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
         :class="
@@ -58,7 +11,7 @@
         "
         @click="actionPage = 6"
       >
-        Teacher
+        Information
       </div>
       <div
         class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
@@ -108,119 +61,216 @@
         Attendance
       </div>
     </div>
-    <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
-
+    <div class="border border-solid border-slate-600 border-b-0"></div>
+    <div v-if="actionPage == 6 && item?.name" class="flex justify-start mb-5">
+      <div class="px-5">
+        <div class="flex text-slate-300 mt-5">
+          <!-- class info -->
+          <div class="flex mx-5">
+            <div class="flex-col">
+              <p class="">
+                ClassName: <span class="text-blue-500">{{ item.name }}</span>
+              </p>
+              <p class="">
+                Grade: <span class="text-blue-500">{{ item.grade.name }}</span>
+              </p>
+            </div>
+            <div class="flex-col ml-10">
+              <p class="">
+                School Year:
+                <span class="text-blue-500">{{ item.schoolYear.name }}</span>
+              </p>
+              <p class="">
+                Total Children:
+                <span class="text-blue-500">{{ item.children.length }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <Table
+      :items="item.assignment.teacher"
+      :fields="['Teacher', 'phone', 'email', 'address']"
+      :labels="['name', 'phone', 'email', 'address']"
+      :showAction="[true, false, false]"
+      v-if="actionPage == 6 && item?.name"
+      :showCheckbox="false"
+    />
+    <div v-if="actionPage == 6" class="mb-5"></div>
     <!-- children -->
-    <ChildrenList v-if="actionPage == 1" :classId="item._id" />
+    <ChildrenList
+      v-if="actionPage == 1"
+      :classId="item._id"
+      :children="item.children"
+    />
     <CDIList v-if="actionPage == 2" :cdiL="item.cdiL" :classId="item._id" />
-    <MealTicket v-if="actionPage == 4" :classId="item._id" />
-    <Attendance v-if="actionPage == 5" :classId="item._id" />
-    <Receipt v-if="actionPage == 3" :classId="item._id" />
-    <TableNoneAction :items="teacher" :fields="['Teacher', 'phone', 'email', 'address', 'position']" :labels="['name', 'phone', 'email', 'address', 'position']" v-if="actionPage == 6" />
+    <MealTicketList v-if="actionPage == 4" :classId="item._id" />
+    <AttendanceList v-if="actionPage == 5" :classId="item._id" />
+    <ReceiptList v-if="actionPage == 3" :classId="item._id" />
   </div>
 </template>
 
-<script>
-import BAdd from "../../../components/buttons/Add.vue";
-import BEdit from "../../../components/buttons/Edit.vue";
-import BDelete from "../../../components/buttons/Delete.vue";
-import BCancel from "../../../components/buttons/Cancel.vue";
-import FSelect from "../../../components/forms/Select.vue";
-import FSearch from "../../../components/forms/Search.vue";
-import Table from "../../../components/Table.vue";
-import TableNoneAction from "../../../components/TableNoneAction.vue";
-import Pagination from "../../../components/Pagination.vue";
-import FormOne from "../../../components/forms/FormOne.vue";
-import Classes from "../../../services/classes.service";
-import ASuccess from "../../../components/alerts/Success.vue";
-import ChildrenList from "./children/index.vue";
-import CDIList from "./cdi/index.vue";
-import MealTicket from "./mealTicket/index.vue";
-import Attendance from "./attendance/index.vue";
-import Receipt from "./receipt/index.vue";
-import Swal from "sweetalert2";
+<script setup>
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  defineProps,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // Swal
+  Swal,
+  // components
+  Navbar,
+  Sidebar,
+  Footer,
+  Login,
+  BAdd,
+  BEdit,
+  BDelete,
+  BCancel,
+  FSelect,
+  FSearch,
+  Table,
+  Pagination,
+  FormOne,
+  ASuccess,
+  FormChildren,
+  ChildrenList,
+  CDIList,
+  MealTicketList,
+  AttendanceList,
+  ReceiptList,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  alert_input_1,
+  alert_remove,
+  // https
+  http_getAll,
+  http_getOne,
+  http_deleteOne,
+  http_create,
+  http_update,
+  // format money
+  formatCurrencyVND,
+  convertToWords,
+  // format date-time
+  formatDate,
+  formatDateTime,
+  formatDateTime_2,
+} from "../../../assets/js/imports";
+//
+import {
+  items,
+  items_cp,
+  item,
+  background,
+  searchText,
+  searchWith,
+  searchOption,
+  entryValue,
+  typing_entry,
+  option_entry,
+  mode,
+  option_mode,
+  numberOfPages,
+  totalRow,
+  startRow,
+  endRow,
+  currentPage,
+  activeAdd,
+  activeEdit,
+  deleteValue,
+  setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  ageList,
+  ageValue,
+  filter_age,
+  genderList,
+  genderValue,
+  filter_gender,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
+} from "../../../components/common/index.js";
 
-export default {
-  components: {
-    BAdd,
-    BEdit,
-    BDelete,
-    BCancel,
-    FSelect,
-    FSearch,
-    Table,
-    Pagination,
-    FormOne,
-    ASuccess,
-    ChildrenList,
-    CDIList,
-    MealTicket,
-    Attendance,
-    Receipt,
-    TableNoneAction,
+const actionPage = ref(6);
+const actionList = ref([1, 2, 3, 4, 5, 6]);
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
   },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      // data
-      items: [],
-      item: {},
-      teacher: [],
-      actionPage: 1,
-      actionList: [1, 2, 3, 4, 5],
-    };
-  },
-  watch: {},
-  computed: {},
-  methods: {
-    async get() {
-      try {
-        this.items = await Classes.get(this.id);
-      } catch (error) {
-        console.error(error);
-      }
-    },
+});
 
-    format() {
-      this.items = this.items.map((value, index) => {
-        this.teacher = value.assignment.map((value1, index1) => {
-          return {
-            _id: value1.teacher._id,
-            name: value1.teacher.name,
-            phone: value1.teacher.phone,
-            email: value1.teacher.email,
-            address: value1.teacher.address,
-            position: value1.teacher.position.name,
-          };
-        });
-        return {
-          _id: value._id,
-          name: value.name,
-          grade: value.grade.name,
-          schoolYear: value.schoolYear.name,
-          children: value.children.length,
-          cdi: value.cdi.length,
-          cdiL: value.cdi,
-          receipt: value.receipt.length,
-          assignment: value.assignment.length,
-        };
-      });
-
-      this.item = this.items[0];
-    },
-
-    async refresh() {
-      await this.get();
-      this.format();
-    },
-  },
-  async created() {
-    await this.refresh();
-  },
+const refresh = async () => {
+  if (props.id) {
+    item.value = await http_getOne(Classes, props.id);
+    item.value = item.value[0];
+  }
 };
+
+onBeforeMount(async () => {
+  await refresh();
+});
 </script>

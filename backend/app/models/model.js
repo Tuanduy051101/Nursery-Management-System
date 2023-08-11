@@ -159,7 +159,7 @@ const Account = model.newModel('Account', {
     password: {
         type: String,
     },
-    role: { type: String, enum: ['child', 'teacher'], required: true },
+    role: { type: String, enum: ['BGH', 'GVQLT', 'PH', 'QTHT', 'KT', 'GVDD'], required: true },
 });
 
 // ! 19

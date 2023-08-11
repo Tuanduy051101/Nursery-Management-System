@@ -1,5 +1,10 @@
 <template>
-  <Form @submit="submit" :validation-schema="formSchema" v-slot="{ errors }">
+  <Form
+    v-if="buttonName == 'Add'"
+    @submit=""
+    :validation-schema="formSchema"
+    v-slot="{ errors }"
+  >
     <div
       class="fixed top-0 right-0 w-screen h-screen z-50 flex overflow-auto items-center justify-center"
     >
@@ -55,9 +60,8 @@
             <div class="w-11/12" v-show="activeStep == 1">
               <!-- name -->
               <div class="flex flex-col text-slate-300">
-                <label for="name" class="mb-1 -mt-2.5 ml-1 flex items-center"
-                  >Name<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="name" class="-mt-2.5 flex items-center"
+                  >Name<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
@@ -68,41 +72,45 @@
                   type="text"
                   placeholder=""
                   :class="!item.name ? 'border-red-500' : 'border-slate-600'"
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="name"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
               <!-- gender -->
               <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Gender<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="" class="mt-2.5 flex items-center"
+                  >Gender<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <FSelect
-                  @update:modelValue="(value) => (item.gender = value)"
+                  @update:modelValue="
+                    (value) => {
+                      item.gender = value;
+                      item.gender_format = value == true ? 'nam' : 'nữ';
+                    }
+                  "
                   @update="(value) => (runGet = value)"
                   :options="[
                     {
-                      _id: true,
+                      _id: 'true',
                       name: 'nam',
                     },
                     {
-                      _id: false,
+                      _id: 'false',
                       name: 'nữ',
                     },
                   ]"
-                  :modelValue="`nam`"
+                  :modelValue="item.gender_format"
                 />
               </div>
               <!-- phone -->
               <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Phone<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="" class="mt-2.5 flex items-center"
+                  >Phone<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
@@ -118,17 +126,17 @@
                       ? 'border-red-500'
                       : 'border-slate-600'
                   "
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="phone"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
               <!-- email -->
               <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >E-mail<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="" class="mt-2.5 flex items-center"
+                  >E-mail<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
@@ -144,17 +152,17 @@
                       ? 'border-red-500'
                       : 'border-slate-600'
                   "
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="email"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
               <!-- address -->
               <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Address<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="" class="mt-2.5 flex items-center"
+                  >Address<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
@@ -171,10 +179,11 @@
                       ? 'border-red-500'
                       : 'border-slate-600'
                   "
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="address"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
             </div>
@@ -182,9 +191,8 @@
             <div class="w-11/12" v-show="activeStep == 2">
               <!-- Position -->
               <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 -mt-2.5 ml-1 flex items-center"
-                  >Position<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="" class="-mt-2.5 flex items-center"
+                  >Position<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
@@ -192,22 +200,22 @@
                   @update:modelValue="(value) => (item.position = value)"
                   @update="(value) => (runGet = value)"
                   :options="position"
-                  :modelValue="mPosition.name"
+                  :modelValue="mPosition.name || 'Choose'"
                   :class="
                     !item.position ? 'border-red-500' : 'border-slate-600'
                   "
+                  :activeSearch="true"
                 />
                 <span
                   v-if="!item.position"
-                  class="text-red-500 mt-1 ml-1 text-sm"
-                  >Please select a value !</span
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                  >"Position" must have a valid.</span
                 >
               </div>
               <!-- Diploma -->
               <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Diploma<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                <label for="" class="mt-2.5 flex items-center"
+                  >Diploma<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
@@ -215,13 +223,14 @@
                   @update:modelValue="(value) => (item.diploma = value)"
                   @update="(value) => (runGet = value)"
                   :options="diploma"
-                  :modelValue="mDiploma.name"
+                  :modelValue="mDiploma.name || 'Choose'"
                   :class="!item.diploma ? 'border-red-500' : 'border-slate-600'"
+                  :activeSearch="true"
                 />
                 <span
                   v-if="!item.diploma"
-                  class="text-red-500 mt-1 ml-1 text-sm"
-                  >Please select a value !</span
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                  >"Diploma" must have a valid.</span
                 >
               </div>
             </div>
@@ -230,33 +239,40 @@
               <div class="">
                 <!-- name -->
                 <div class="flex flex-col text-slate-300">
-                  <label for="" class="mb-1 -mt-2.5 ml-1 flex items-center"
+                  <label for="" class="-mt-2.5 flex items-center"
                     >User name<span
-                      class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                      class="text-red-500 text-3xl relative ml-0.5"
                       >*</span
                     ></label
                   >
                   <Field
-                    v-model="item.userName"
+                    v-model="item.user_name"
                     class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
                     style=""
                     name="userName"
                     type="text"
                     placeholder=""
-                    :class="!item.userName ? 'border-red-500' : 'border-slate-600'"
+                    :class="
+                      !item.user_name ? 'border-red-500' : 'border-slate-600'
+                    "
                   />
                   <p
                     v-if="checkUser == false"
-                    class="text-red-500 mt-1 ml-1 text-sm"
+                    class="text-red-500 mt-2 ml-0.5 text-sm"
                   >
-                    This name already has a user.
+                    This "user_name" already has a user.
+                  </p>
+                  <p
+                    v-if="!item.user_name"
+                    class="text-red-500 mt-2 ml-0.5 text-sm"
+                  >
+                    "User_name" must have a value.
                   </p>
                 </div>
                 <!-- password -->
                 <div class="flex flex-col text-slate-300">
-                  <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                    >Password<span
-                      class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                  <label for="" class="mt-2.5 flex items-center"
+                    >Password<span class="text-red-500 text-3xl relative ml-0.5"
                       >*</span
                     ></label
                   >
@@ -278,7 +294,7 @@
                       </span>
                     </span>
                     <Field
-                      v-if="showPassword == false"
+                      v-if="showPassword == true"
                       v-model="item.password"
                       class="bg-inherit w-full rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
                       style=""
@@ -290,7 +306,7 @@
                       "
                     />
                     <Field
-                      v-if="showPassword == true"
+                      v-if="showPassword == false"
                       v-model="item.password"
                       class="bg-inherit w-full rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
                       style=""
@@ -302,12 +318,17 @@
                       "
                     />
                   </div>
+                  <p
+                    v-if="!item.password"
+                    class="text-red-500 mt-2 ml-0.5 text-sm"
+                  >
+                    "Password" must have a value.
+                  </p>
                 </div>
                 <!-- role -->
                 <div class="flex flex-col text-slate-300">
-                  <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                    >Role<span
-                      class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+                  <label for="" class="mt-2.5 flex items-center"
+                    >Role<span class="text-red-500 text-3xl relative ml-0.5"
                       >*</span
                     ></label
                   >
@@ -342,34 +363,233 @@
                     @update:modelValue="(value) => (item.role = value)"
                   />
                 </div>
+                <p v-if="!item.role" class="text-red-500 mt-2 ml-0.5 text-sm">
+                  "Role" must have a value.
+                </p>
               </div>
               <!-- Button Add -->
               <button
-                @click=""
+                @click="submit"
                 class="text-slate-300 border border-solid border-green-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:bg-green-500 mt-5 hover:text-slate-100"
+                :class="[
+                  buttonName == 'Add'
+                    ? 'border-green-500 hover:bg-green-500'
+                    : 'border-yellow-500 hover:bg-yellow-500',
+                ]"
               >
-                Add
+                {{ buttonName }}
               </button>
             </div>
           </div>
           <div class="flex justify-end mt-5">
             <span
-              v-if="activeStep >= 1 && activeStep < stepList.length"
-              class="flex items-center px-5 py-1.5 mr-5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
-              @click="activeStep = 2"
-              >Next
-              <span class="material-symbols-outlined flex items-center ml-2">
-                navigate_next
-              </span>
-            </span>
-            <span
               v-if="activeStep > 1 && activeStep <= stepList.length"
               class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
-              @click="activeStep = 1"
-              ><span class="material-symbols-outlined flex items-center mr-2">
-                navigate_before </span
+              @click="activeStep = activeStep - 1"
               >Previous</span
             >
+            <span
+              v-if="activeStep >= 1 && activeStep < stepList.length"
+              class="flex items-center px-5 py-1.5 ml-5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
+              @click="activeStep = activeStep + 1"
+              >Next
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Form>
+  <Form
+    v-if="buttonName == 'Edit'"
+    @submit=""
+    :validation-schema="formSchema"
+    v-slot="{ errors }"
+  >
+    <div
+      class="fixed top-0 right-0 w-screen h-screen z-50 flex overflow-auto items-center justify-center"
+    >
+      <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
+      <div
+        class="bg-slate-800 mx-5 w-4/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
+        style="min-height: 100px"
+      >
+        <div
+          class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
+        >
+          <span>{{ title }}</span>
+          <span
+            @click="cancel"
+            class="material-symbols-outlined cursor-pointer text-slate-600 hover:text-slate-300"
+          >
+            close
+          </span>
+        </div>
+        <div class="flex flex-col my-5 mx-3">
+          <div class="flex flex-row">
+            <div class="w-full">
+              <!-- name -->
+              <div class="flex flex-col text-slate-300">
+                <label for="name" class="-mt-2.5 flex items-center"
+                  >Name<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.name"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  name="name"
+                  type="text"
+                  placeholder=""
+                  :class="!item.name ? 'border-red-500' : 'border-slate-600'"
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="name"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- gender -->
+              <div class="flex flex-col text-slate-300">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Gender<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <FSelect
+                  @update:modelValue="
+                    (value) => {
+                      item.gender = value;
+                      item.gender_format = value == true ? 'nam' : 'nữ';
+                    }
+                  "
+                  @update="(value) => (runGet = value)"
+                  :options="[
+                    {
+                      _id: 'true',
+                      name: 'nam',
+                    },
+                    {
+                      _id: 'false',
+                      name: 'nữ',
+                    },
+                  ]"
+                  :modelValue="item.gender_format"
+                />
+              </div>
+              <!-- phone -->
+              <div class="flex flex-col text-slate-300">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Phone<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.phone"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  name="phone"
+                  style=""
+                  type="text"
+                  placeholder=""
+                  :class="
+                    !item.phone || errors.phone
+                      ? 'border-red-500'
+                      : 'border-slate-600'
+                  "
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="phone"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- email -->
+              <div class="flex flex-col text-slate-300">
+                <label for="" class="mt-2.5 flex items-center"
+                  >E-mail<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.email"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  name="email"
+                  style=""
+                  type="text"
+                  placeholder=""
+                  :class="
+                    !item.email || errors.email
+                      ? 'border-red-500'
+                      : 'border-slate-600'
+                  "
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="email"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- address -->
+              <div class="flex flex-col text-slate-300">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Address<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.address"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  name="address"
+                  id="address"
+                  style=""
+                  type="text"
+                  placeholder=""
+                  :class="
+                    !item.address || errors.address
+                      ? 'border-red-500'
+                      : 'border-slate-600'
+                  "
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="address"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- Position -->
+              <div class="flex flex-col text-slate-300">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Position<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <FSelect
+                  @update:modelValue="(value) => (item.position = value)"
+                  @update="(value) => (runGet = value)"
+                  :options="position"
+                  :modelValue="item.position_name || 'Choose'"
+                  :class="
+                    !item.position ? 'border-red-500' : 'border-slate-600'
+                  "
+                  :activeSearch="true"
+                />
+                <span
+                  v-if="!item.position"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                  >"Position" must have a valid.</span
+                >
+              </div>
+              <button
+                @click="$emit('submit')"
+                class="text-slate-300 border border-solid border-green-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:bg-green-500 mt-5 hover:text-slate-100"
+                :class="[
+                  buttonName == 'Add'
+                    ? 'border-green-500 hover:bg-green-500'
+                    : 'border-yellow-500 hover:bg-yellow-500',
+                ]"
+              >
+                {{ buttonName }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -411,6 +631,10 @@ export default {
       type: String,
       default: "",
     },
+    buttonName: {
+      type: String,
+      default: "Add",
+    },
   },
   emits: ["cancel", "submit"],
   watch: {
@@ -429,16 +653,16 @@ export default {
   },
   data() {
     const formSchema = yup.object().shape({
-      name: yup.string().required("Name must have a value !"),
+      name: yup.string().required(`"Name" must have a value.`),
       phone: yup
         .string()
         .required("Phone number must have a value !")
-        .matches(/((09|03|07|08|05)+([0-9]{8})\b)/g, "Invalid phone number !"),
+        .matches(/((09|03|07|08|05)+([0-9]{8})\b)/g, "Invalid phone number."),
       email: yup
         .string()
-        .required("Email must have a value !")
-        .email("Incorrect e-mail !"),
-      address: yup.string().required("Address must have a value !"),
+        .required(`"E-mail" must have a value.`)
+        .email("Incorrect e-mail."),
+      address: yup.string().required(`"Address" must have a value.`),
     });
     return {
       formSchema,
@@ -460,10 +684,10 @@ export default {
         {
           id: 3,
           name: "",
-        }
+        },
       ],
       activeStep: 1,
-      showPassword: false,
+      showPassword: true,
       accounts: [],
       checkUser: false,
     };
@@ -520,7 +744,12 @@ export default {
     },
 
     submit() {
-      if (this.checkUser && this.item.role.length > 0 && this.position.length > 0 && this.diploma.length > 0) {
+      if (
+        this.checkUser &&
+        this.item.role.length > 0 &&
+        this.position.length > 0 &&
+        this.diploma.length > 0
+      ) {
         this.$emit("submit");
       }
     },
@@ -541,7 +770,7 @@ export default {
     },
 
     setUser() {
-      this.item.userName = this.item.name;
+      this.item.user_name = this.item.name;
       this.generateOTP();
     },
 
@@ -553,7 +782,7 @@ export default {
 
     checkUser1() {
       this.accounts = this.accounts.filter((value, index) => {
-        return value.name == this.item.userName;
+        return value.name == this.item.user_name;
       });
       if (this.accounts.length > 0) this.checkUser = false;
       else this.checkUser = true;

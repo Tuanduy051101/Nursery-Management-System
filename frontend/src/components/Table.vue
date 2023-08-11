@@ -8,7 +8,7 @@
         class="text-slate-300 border border-solid border-slate-600 border-l-0 uppercase text-base"
         :class="borderR ? '' : 'border-r-0'"
       >
-        <th class="p-2">
+        <th v-if="showCheckbox" class="p-2">
           <input type="checkbox" class="float-left" v-model="ischecked" />
         </th>
         <th class="p-2"><span class="float-left">#</span></th>
@@ -32,7 +32,7 @@
         v-for="(item, index) in items"
         :key="item._id"
       >
-        <td class="p-2">
+        <td v-if="showCheckbox" class="p-2">
           <input
             v-model="item.checked"
             class="float-left"
@@ -66,11 +66,13 @@
             >
               <i class="bi bi-eye cursor-pointer hover:text-blue-500"></i>
             </router-link>
+            <div v-if="showAction[0]" class="ml-2"></div>
             <i
               v-if="showAction[1]"
-              class="bi bi-pencil-square mx-2 cursor-pointer hover:text-yellow-500"
+              class="bi bi-pencil-square cursor-pointer hover:text-yellow-500"
               @click="$emit('edit', item._id)"
             ></i>
+            <div v-if="showAction[1]" class="ml-2"></div>
             <i
               v-if="showAction[2]"
               class="bi bi-trash cursor-pointer hover:text-red-500"
@@ -129,7 +131,11 @@ export default {
     startRow: {
       type: Number,
       default: 1,
-    }
+    },
+    showCheckbox: {
+      type: Boolean,
+      default: true,
+    },
   },
   emits: ["update:activeAction", "deleteItem", "update:item"],
   data() {

@@ -30,7 +30,7 @@ import Teacher from '../../services/teacher.service';
 import TuitionFees from '../../services/tuitionFees.service';
 
 // vue composition
-import { ref, reactive, watch, computed, onMounted, onUnmounted, watchEffect, provide, inject, onBeforeMount, } from 'vue';
+import { ref, reactive, watch, computed, onMounted, onUnmounted, watchEffect, provide, inject, onBeforeMount, defineProps} from 'vue';
 
 // vue router
 import { useRoute, useRouter } from 'vue-router';
@@ -57,6 +57,15 @@ import Pagination from "../../components/Pagination.vue";
 import FormOne from "../../components/forms/FormOne.vue";
 import ASuccess from "../../components/alerts/Success.vue";
 import Table from "../../components/Table.vue";
+import FormChildren from "../../components/forms/FormChildren.vue";
+import FormTeacher from "../../components/forms/FormTeacher.vue";
+import ChildrenList from "../../views/children/cRoom/children/index.vue";
+import CDIList from "../../views/children/cRoom/cdi/index.vue";
+import MealTicketList from "../../views/children/cRoom/mealTicket/index.vue";
+import AttendanceList from "../../views/children/cRoom/attendance/index.vue";
+import ReceiptList from "../../views/children/cRoom/receipt/index.vue";
+import AddMany from "../../views/children/cRoom/addition/addMany.vue";
+import AddAuto from "../../views/children/cRoom/addition/addAuto.vue";
 
 // alert
 import { alert_error, alert_warning, alert_success, run_alert, alert_input_1, alert_remove } from './alert';
@@ -69,6 +78,9 @@ import { http_getAll, http_getOne, http_deleteOne, http_create, http_update } fr
 
 // format money
 import { formatCurrencyVND, convertToWords } from '../../assets/js/money';
+
+// format date-time
+import { formatDate, formatDateTime, formatDateTime_2 } from '../../assets/js/date-time';
 export {
     // service
     Account,
@@ -98,15 +110,15 @@ export {
     Teacher,
     TuitionFees,
     // vue composition
-    ref, reactive, watch, computed, onMounted, onUnmounted, watchEffect, provide, inject, onBeforeMount,
-    // vue router
-    useRoute, useRouter,
-    // vee-validate
+    ref, reactive, watch, computed, onMounted, onUnmounted, watchEffect, provide, inject, onBeforeMount, defineProps,
+    // vue router 
+    useRoute, useRouter, 
+    // vee-validate 
     Form, Field, ErrorMessage,
     yup,
-    // Swal
+    // Swal 
     Swal,
-    // components
+    // components 
     Navbar,
     Sidebar,
     Footer,
@@ -121,6 +133,15 @@ export {
     Pagination,
     FormOne,
     ASuccess,
+    FormChildren,
+    FormTeacher,
+    ChildrenList,
+    CDIList,
+    MealTicketList,
+    AttendanceList,
+    ReceiptList,
+    AddMany,
+    AddAuto,
     // alert
     alert_error, alert_warning, alert_success, run_alert, alert_input_1, alert_remove,
     // image letters
@@ -129,6 +150,8 @@ export {
     http_getAll, http_getOne, http_deleteOne, http_create, http_update,
     // format money
     formatCurrencyVND, convertToWords,
+    // format date-time
+    formatDate, formatDateTime, formatDateTime_2
 }
 
 

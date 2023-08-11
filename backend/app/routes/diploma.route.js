@@ -9,5 +9,6 @@ router.route('/')
 router.route('/:id')
     .delete(diploma.delete)
     .get(diploma.find)
+    .put(diploma.update)
 module.exports = router;
 

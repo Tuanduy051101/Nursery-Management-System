@@ -3,15 +3,15 @@
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
         <FSelect
-          class="w-20"
+          style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
           :title="`Record`"
           @update:modelValue="
             async (value) => {
+              currentPage = 1;
               if (value != 'other') {
                 entryValue = value;
-                currentPage = 1;
               } else
                 entryValue = await alert_input_1(
                   'number',
@@ -198,9 +198,7 @@ const itemAdd = ref({
   description: "",
 });
 
-searchOption.value = [
-  { _id: "name", name: "Search by name" },
-];
+searchOption.value = [{ _id: "name", name: "Search by name" }];
 
 const create = async () => {
   const result = await http_create(Grade, itemAdd.value);

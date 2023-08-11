@@ -1,87 +1,121 @@
 <template>
   <div class="border border-solid border-slate-600 rounded-md">
-    <!-- Header --><!-- Header -->
     <p class="text-slate-300 text-lg mx-5 mt-5">Search Filter</p>
-    <div class="flex justify-center items-center my-5">
+    <div class="flex justify-center items-center mx-5 my-5">
       <FSelect
-        class="w-full ml-5 text-md"
-        :options="sYear"
-        :modelValue="` Select school year`"
-        v-model="yearValue"
+        class="w-full mr-5 text-md"
+        :options="ageList"
+        :title="const_ag"
+        :modelValue="ageValue"
+        @update:modelValue="
+          async (value) => {
+            if (value != 'other') {
+              ageValue = value;
+              filtered();
+            } else
+              ageValue = await alert_input_1(
+                'number',
+                '',
+                `Enter the child's age.`
+              );
+            filtered();
+          }
+        "
+        @refresh="
+          async () => {
+            ageValue = const_ag;
+            await filtered();
+          }
+        "
+        :showClose="true"
       />
       <FSelect
-        class="w-full ml-5 text-md"
-        :options="grade"
-        :modelValue="` Select grade`"
-        v-model="gradeValue"
-      />
-      <FSelect
-        class="w-full ml-5 text-md"
-        :options="[
-          {
-            _id: 3,
-            name: '3 age',
-          },
-          {
-            _id: 4,
-            name: '4 tuổi',
-          },
-          {
-            _id: 5,
-            name: '5 tuổi',
-          },
-        ]"
-        :modelValue="` Select age`"
-        v-model="ageValue"
-      />
-      <FSelect
-        class="w-full mx-5 text-md"
-        :options="[
-          { _id: true, name: 'Nam' },
-          { _id: false, name: 'Nữ' },
-        ]"
-        :modelValue="` Select gender`"
-        v-model="genderValue"
+        class="w-full mr-5 text-md"
+        :options="genderList"
+        :title="const_ge"
+        :modelValue="const_ge"
+        @update:modelValue="
+          (value) => {
+            genderValue = value;
+            filtered();
+          }
+        "
+        @refresh="
+          () => {
+            genderValue = const_ge;
+            filtered();
+          }
+        "
+        :showClose="true"
       />
     </div>
     <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
         <FSelect
-          class="w-20"
-          :options="[
-            { _id: 5, name: 5 },
-            { _id: 10, name: 10 },
-            { _id: 20, name: 20 },
-            { _id: 30, name: 30 },
-            { _id: 40, name: 40 },
-            { _id: 50, name: 50 },
-          ]"
+          style="width: 105px"
+          :options="option_entry"
           :modelValue="entryValue"
-          v-model="entryValue"
+          :title="`Record`"
+          @update:modelValue="
+            async (value) => {
+              currentPage = 1;
+              if (value != 'other') {
+                entryValue = value;
+              } else
+                entryValue = await alert_input_1(
+                  'number',
+                  '',
+                  'Enter the number of records per page.'
+                );
+            }
+          "
         />
         <FSelect
           class="w-28 mx-5"
-          :options="[
-            { _id: 0, name: 'auto' },
-            { _id: 1, name: 'fixed' },
-          ]"
+          :options="option_mode"
           :modelValue="`auto`"
+          :title="`Display`"
           v-model="mode"
         />
       </div>
       <div class="flex-1 flex">
-        <FSearch class="flex-1 mx-5" v-model="searchText" />
+        <FSearch
+          class="flex-1 mx-5"
+          @search="
+            (value) => {
+              searchText = value;
+              currentPage = 1;
+            }
+          "
+          :title="searchWith.name"
+          @searchWith="(value) => (searchWith = value)"
+          :optionSearch="searchOption"
+        />
         <BAdd @click="activeAdd = true" />
       </div>
     </div>
     <Table
       :items="setPages"
       :fields="['Children', 'Gender', 'Birthday', 'Address', 'Parents']"
-      :labels="['name', 'gender', 'birthday', 'address', 'parents']"
+      :labels="[
+        'name',
+        'gender_format',
+        'birthday_format',
+        'address',
+        'parent_name',
+      ]"
       :actionList="actionList"
       :mode="mode"
-      @deleteItem="(value) => (deleteValue = value)"
+      :startRow="startRow"
+      @delete="(value) => remove(value)"
+      @edit="
+        async (value) => {
+          item = await http_getOne(Children, value);
+          item.gender_format = item.gender == 'true' ? 'nam' : 'nữ';
+          activeEdit = true;
+        }
+      "
     />
     <Pagination
       :numberOfPages="numberOfPages"
@@ -93,376 +127,271 @@
   </div>
   <FormChildren
     v-if="activeAdd"
-    :item="parentsAdd"
-    :item1="childAdd"
-    :item2="account"
-    :title="`Add A New Child`"
-    @cancel="(value) => (activeAdd = value)"
+    :item="itemAdd"
+    :title="`Add a new child`"
+    @cancel="
+      (value) => {
+        activeAdd = value;
+        itemAdd.role = '';
+        itemAdd.p_relationship = '';
+      }
+    "
     @submit="create()"
+  />
+  <FormChildren
+    v-if="activeEdit"
+    :item="item"
+    :title="`Edit a child`"
+    :buttonName="`Edit`"
+    @cancel="
+      (value) => {
+        activeEdit = value;
+      }
+    "
+    @submit="edit()"
   />
 </template>
 
-<script>
-import BAdd from "../../components/buttons/Add.vue";
-import BEdit from "../../components/buttons/Edit.vue";
-import BDelete from "../../components/buttons/Delete.vue";
-import BCancel from "../../components/buttons/Cancel.vue";
-import FSelect from "../../components/forms/Select.vue";
-import FSearch from "../../components/forms/Search.vue";
-import Table from "../../components/TableChildren.vue";
-import Pagination from "../../components/Pagination.vue";
-import FormOne from "../../components/forms/FormOne.vue";
-import FormChildren from "../../components/forms/FormChildren.vue";
-import Children from "../../services/children.service";
-import Parents from "../../services/parents.service";
-import SYear from "../../services/sYear.service";
-import Grade from "../../services/grade.service";
-import Account from "../../services/account.service";
-import ParentDetails from "../../services/parentDetails.service";
-import ASuccess from "../../components/alerts/Success.vue";
-import Swal from "sweetalert2";
+<script setup>
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // Swal
+  Swal,
+  // components
+  Navbar,
+  Sidebar,
+  Footer,
+  Login,
+  BAdd,
+  BEdit,
+  BDelete,
+  BCancel,
+  FSelect,
+  FSearch,
+  Table,
+  Pagination,
+  FormOne,
+  ASuccess,
+  FormChildren,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  alert_input_1,
+  alert_remove,
+  // https
+  http_getAll,
+  http_getOne,
+  http_deleteOne,
+  http_create,
+  http_update,
+  // format money
+  formatCurrencyVND,
+  convertToWords,
+  // format date-time
+  formatDate,
+  formatDateTime,
+  formatDateTime_2,
+} from "../../assets/js/imports";
+//
+import {
+  items,
+  items_cp,
+  item,
+  background,
+  searchText,
+  searchWith,
+  searchOption,
+  entryValue,
+  typing_entry,
+  option_entry,
+  mode,
+  option_mode,
+  numberOfPages,
+  totalRow,
+  startRow,
+  endRow,
+  currentPage,
+  activeAdd,
+  activeEdit,
+  deleteValue,
+  setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  ageList,
+  ageValue,
+  filter_age,
+  genderList,
+  genderValue,
+  filter_gender,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
+} from "../../components/common/index.js";
 
-export default {
-  components: {
-    BAdd,
-    BEdit,
-    BDelete,
-    BCancel,
-    FSelect,
-    FSearch,
-    Table,
-    Pagination,
-    FormOne,
-    ASuccess,
-    FormChildren,
-  },
-  data() {
-    return {
-      // data
-      items: [],
-      item: {},
-      // search
-      searchText: "",
-      // entry
-      entryValue: 10,
-      // table
-      mode: "auto",
-      // pagination
-      numberOfPages: 1,
-      totalRow: 0,
-      startRow: 0,
-      endRow: 0,
-      currentPage: 1,
-      // add
-      activeAdd: false,
-      parentsAdd: {
-        name: "",
-        gender: true,
-        phone: "",
-        email: "",
-        address: "",
-        relationship: "bố",
-        parents: "",
-      },
-      childAdd: {
-        name: "",
-        gender: true,
-        birthday: "",
-        address: "",
-        parentDetails: "",
-        warning: true,
-      },
-      account: {
-        name: "",
-        password: "",
-        role: "",
-      },
-      background: "rgb(51 65 85 / var(--tw-bg-opacity))",
-      // delete
-      deleteValue: "",
-      actionList: ["Children.view"],
-      sYear: [],
-      grade: [],
-      yearValue: null,
-      gradeValue: null,
-      ageValue: null,
-      genderValue: null,
-    };
-  },
-  watch: {
-    async deleteValue() {
-      await this.get();
-      await this.delete();
-      await this.refresh();
-    },
-    yearValue() {
-      this.refresh();
-    },
-    gradeValue() {
-      this.refresh();
-    },
-    ageValue() {
-      this.refresh();
-    },
-    genderValue() {
-      this.refresh();
-    },
-  },
-  computed: {
-    toString() {
-      return this.items.map((item, index) => {
-        return [item.name, item.birthday].join("");
-      });
-    },
+const itemAdd = ref({
+  c_name: "",
+  c_gender: "true",
+  c_birthday: "",
+  c_address: "",
+  p_name: "",
+  p_gender: "true",
+  p_phone: "",
+  p_email: "",
+  p_address: "",
+  p_relationship: "",
+  user_name: "",
+  password: "",
+  role: "",
+});
 
-    filter() {
-      return this.items.filter((item, index) => {
-        return this.toString[index].includes(
-          this.searchText.toLocaleLowerCase()
-        );
-      });
-    },
+searchOption.value = [
+  { _id: "name", name: "Search by name" },
+  { _id: "address", name: "Search by address" },
+];
 
-    filtered() {
-      if (!this.searchText) {
-        this.totalRow = this.items.length;
-        return this.items;
-      } else {
-        this.totalRow = this.filter.length;
-        return this.filter;
-      }
-    },
-
-    setNumberOfPages() {
-      return Math.ceil(this.filtered.length / this.entryValue);
-    },
-
-    setPages() {
-      if (this.setNumberOfPages == 0) this.numberOfPages = 1;
-      else this.numberOfPages = this.setNumberOfPages;
-
-      this.startRow = (this.currentPage - 1) * this.entryValue + 1;
-      this.endRow = this.currentPage * this.entryValue;
-
-      return this.filtered.filter((item, index) => {
-        return (
-          index + 1 > (this.currentPage - 1) * this.entryValue &&
-          index + 1 <= this.currentPage * this.entryValue
-        );
-      });
-    },
-  },
-  methods: {
-    async getAll() {
-      try {
-        this.items = await Children.getAll();
-        this.items = this.items.map((item, index) => {
-          return {
-            _id: item._id,
-            name: item.name,
-            gender: item.gender,
-            birthday: this.formatDate(item.birthday),
-            address: item.address,
-            parents: item.parentDetails[0].name,
-            classes: item.classes,
-            age:
-              new Date().getFullYear() - new Date(item.birthday).getFullYear(),
-          };
-        });
-        if (this.yearValue != null) {
-          this.items = this.items.filter((value, index) => {
-            var check = false;
-            for (let value1 of value.classes) {
-              if (value1.schoolYear._id == this.yearValue) {
-                check = true;
-                break;
-              }
-            }
-            return check == true;
-          });
-        }
-
-        if (this.gradeValue != null) {
-          this.items = this.items.filter((value, index) => {
-            var check = false;
-            for (let value1 of value.classes) {
-              if (value1.grade == this.gradeValue) {
-                check = true;
-                break;
-              }
-            }
-            return check == true;
-          });
-        }
-
-        if (this.genderValue != null) {
-          this.items = this.items.filter((value, index) => {
-            console.log(value);
-            return value.gender == this.genderValue;
-          });
-        }
-
-        if(this.ageValue != null) {
-          this.items = this.items.filter(
-            (value, index) => {
-              return value.age == this.ageValue;
-            }
-          )
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    async get() {
-      try {
-        this.item = await Children.get(this.deleteValue);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    async getAllSY() {
-      try {
-        this.sYear = await SYear.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAllGrade() {
-      try {
-        this.grade = await Grade.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    formatDate(value) {
-      let date = new Date(value);
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      return day + "-" + month + "-" + year;
-    },
-
-    formatTable() {},
-
-    async refresh() {
-      await this.getAll();
-      await this.formatTable();
-    },
-
-    async create() {
-      try {
-        const parents = await Parents.create({});
-        if (!parents.error) {
-          this.parentsAdd.parents = parents.message[0]._id;
-          const parentDetails = await ParentDetails.create(this.parentsAdd);
-          if (!parentDetails.error) {
-            this.childAdd.parentDetails = parentDetails.message[0]._id;
-            const child = await Children.create(this.childAdd);
-            if (!child.error) {
-              const account = await Account.create({
-                name: this.account.name,
-                password: this.account.password,
-                role: this.account.role,
-                user: "child",
-                child: child.message[0]._id,
-                teacher: "",
-              });
-              if (!account.error) {
-                Swal.fire({
-                  background: this.background,
-                  color: "white",
-                  text: "Successful add",
-                  icon: "success",
-                  timer: 2000,
-                });
-                this.activeAdd = false;
-                await this.refresh();
-                this.childAdd.warning = true;
-              }
-
-              this.activeAdd = false;
-              await this.refresh();
-            } else {
-              const option = Swal.fire({
-                background: this.background,
-                color: "white",
-                text: "There already exist similar children",
-                icon: "warning",
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: "Continue",
-                reverseButtons: true,
-              });
-              if ((await option).isConfirmed) {
-                this.childAdd.warning = false;
-                const child = await Children.create(this.childAdd);
-                if (!child.error) {
-                  Swal.fire({
-                    background: this.background,
-                    color: "white",
-                    text: "Successful add",
-                    icon: "success",
-                    timer: 2000,
-                  });
-                }
-              } else {
-                await Parents.delete(parents.message[0]._id);
-                await ParentDetails.delete(parentDetails.message[0]._id);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-    },
-
-    async delete() {
-      const option = Swal.fire({
-        background: this.background,
-        color: "white",
-        icon: "warning",
-        html:
-          "<p>I want to delete" +
-          ' "' +
-          '<span class="text-blue-500 text-lg">' +
-          this.item.name +
-          "</span>" +
-          '"' +
-          "</p>",
-        showCancelButton: true,
-        showConfirmButton: true,
-        confirmButtonText: "Delete",
-        confirmButtonColor: "red",
-        reverseButtons: true,
-      });
-
-      if ((await option).isConfirmed) {
-        try {
-          await Children.delete(this.deleteValue);
-          Swal.fire({
-            background: this.background,
-            color: "white",
-            text: "Successfull delete",
-            icon: "success",
-            timer: 2000,
-          });
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    },
-  },
-  async created() {
-    await this.getAllSY();
-    await this.getAllGrade();
-    await this.refresh();
-  },
+const create = async () => {
+  const result = await http_create(Children, itemAdd.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    activeAdd.value = false;
+    itemAdd.value.role = "";
+    itemAdd.value.p_relationship = "";
+    refresh();
+  }
+  backup_items();
 };
+
+const edit = async () => {
+  const result = await http_update(Children, item.value._id, item.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    activeEdit.value = false;
+    refresh();
+  }
+  backup_items();
+};
+
+const remove = async (item) => {
+  const deleteList = items.value.filter((item) => item.checked);
+  if (deleteList.length != 0) {
+    const isRemove = await alert_remove(
+      deleteList,
+      ["Children", "Gender", "Birthday"],
+      ["name", "gender_format", "birthday_format"]
+    );
+    deleteList.forEach(async (item) => {
+      if (isRemove) {
+        const result = await http_deleteOne(Children, item._id);
+      }
+    });
+    if (isRemove) {
+      run_alert(alert_success("Successfully deleted."));
+      refresh();
+    }
+  }
+  if (deleteList.length == 0) {
+    const isRemove = await alert_remove(
+      [item],
+      ["Children", "Gender", "Birthday"],
+      ["name", "gender_format", "birthday_format"]
+    );
+    if (isRemove) {
+      const result = await http_deleteOne(Children, item._id);
+      if (!result.error) {
+        run_alert(alert_success(result.message));
+        refresh();
+      }
+    }
+  }
+  backup_items();
+};
+
+const refresh = async () => {
+  items.value = await http_getAll(Children);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    birthday_format: formatDate(item.birthday),
+    parent_name: item.parentDetails[0].name,
+    gender_format: item.gender == "true" ? "nam" : "nữ",
+    age_format:
+      new Date().getFullYear() - new Date(item.birthday).getFullYear(),
+  }));
+};
+
+const filtered = async () => {
+  await refresh();
+  filters();
+};
+
+onBeforeMount(async () => {
+  await refresh();
+  backup_items();
+  gradeList.value = await http_getAll(Grade);
+  schoolYearList.value = await http_getAll(SchoolYear);
+  tuitionFeesList.value = await http_getAll(TuitionFees);
+});
 </script>

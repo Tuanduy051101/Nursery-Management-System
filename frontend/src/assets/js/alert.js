@@ -7,7 +7,7 @@ const object_alert = (title, text, html, icon) => {
         text: text,
         html: html,
         showCloseButton: true,
-        timer: 5000,
+        timer: 2000,
         customClass: {
             container: "custom-alert",
         },
@@ -108,13 +108,13 @@ export const alert_input_1 = async (type = 'text', title = '', inputLabel = '', 
         Toast.fire({
             icon: 'success',
             title: message || `You have entered: ${result.value}`,
-            timer: 5000,
+            timer: 2000,
         });
     }
     return result.value < 0 ? result.value * -1 : result.value || 1;
 }
 
-export const alert_remove = async (itemsToDelete, fields, labels) => {
+export const alert_remove = async (itemsToDelete, fields, labels, width = '40%') => {
     const Toast = Swal.mixin({
         toast: true,
         position: "top-end",
@@ -139,7 +139,7 @@ export const alert_remove = async (itemsToDelete, fields, labels) => {
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!',
         cancelButtonText: 'Cancel',
-        width: '40%',
+        width: width,
         html: `
               <table class="border-collapse w-full table-auto">
                 <thead>

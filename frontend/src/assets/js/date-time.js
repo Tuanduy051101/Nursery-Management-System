@@ -3,7 +3,7 @@ export const formatDate = (value) => {
     let day = date.getDate(), month = date.getMonth() + 1, year = date.getFullYear();
     if (month < 10) month = `0${month}`;
     if (day < 10) day = `0${day}`;
-    return `ngày ${day}-${month}-${year}`;
+    return `${day}-${month}-${year}`;
 }
 
 export const formatDateTime = (value) => {

@@ -60,7 +60,7 @@ exports.find = async (req, res, next) => {
     try {
         const document = await SchoolYear.findById(req.params.id)
             .populate([
-                { path: 'classes', populate: { path: 'grade, schoolYear' } },
+                { path: 'classes', populate: { path: 'grade schoolYear' } },
                 { path: 'collectionRates', populate: { path: 'tuitionFees' } },
             ]);
         res.send(document);

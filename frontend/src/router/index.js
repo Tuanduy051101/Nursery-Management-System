@@ -101,7 +101,7 @@ const routes = [
         props: true,
       },
       {
-        path: '/classroom/:id',
+        path: '/classroom/:id/add',
         name: 'ClassRoom.add',
         component: () => import('../views/children/cRoom/addition/index.vue'),
         props: true,

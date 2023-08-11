@@ -22,7 +22,7 @@ exports.create = async (req, res, next) => {
         const document = await Position.create({ name });
         return res.send({
             error: false,
-            message: document,
+            message: 'Successfully created.',
         });
     } catch (error) {
         return next(createError(500, 'Error saving document'));
@@ -41,7 +41,10 @@ exports.findAll = async (req, res, next) => {
 exports.delete = async (req, res, next) => {
     try {
         const result = await Position.findByIdAndDelete(req.params.id);
-        res.send(result);
+        res.send({
+            error: false,
+            message: 'Successfully deleted.'
+        });
     } catch (error) {
         return next(createError(500, 'Error deleting document'));
     }
@@ -56,5 +59,34 @@ exports.find = async (req, res, next) => {
         res.send(document);
     } catch (error) {
         return next(createError(500, 'Error finding document'));
+    }
+};
+
+exports.update = async (req, res, next) => {
+    try {
+        const { name } = req.body;
+        const _id = req.params.id;
+        if (!name) {
+            return res.send({
+                error: true,
+                message: 'Missing required fields.',
+            });
+        }
+
+        const check = await Position.exists({ name });
+        if (check) {
+            return res.send({
+                error: true,
+                message: 'Already exists.',
+            });
+        }
+
+        await Position.findByIdAndUpdate(_id, { name });
+        return res.send({
+            error: false,
+            message: 'Successfully updated.',
+        });
+    } catch (error) {
+        return next(createError(500, 'Error saving document'));
     }
 };

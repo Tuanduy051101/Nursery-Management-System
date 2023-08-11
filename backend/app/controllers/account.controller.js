@@ -5,11 +5,15 @@ const jwt = require('jsonwebtoken');
 const { generateToken, verifyToken, comparePassword, hashPassword } = require('../controllers/common/index');
 
 exports.create = async (req, res, next) => {
-
 };
 
 exports.findAll = async (req, res, next) => {
-
+    try {
+        const documents = await Account.find();
+        return res.send(documents);
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 exports.deleteAll = async (req, res, next) => {

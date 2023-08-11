@@ -2,33 +2,78 @@
   <div class="border border-solid border-slate-600 rounded-md">
     <!-- Header -->
     <p class="text-slate-300 text-lg mx-5 mt-5">Search Filter</p>
-    <div class="flex justify-center items-center my-5">
+    <div class="flex justify-between items-center my-5 mx-5">
       <FSelect
-        class="w-full ml-5 text-md"
-        :options="position"
-        :modelValue="` Select school year`"
-        v-model="positionValue"
+        class="w-full text-md"
+        :options="schoolYearList"
+        :modelValue="const_sy"
+        :title="const_sy"
+        @update:modelValue="
+          (value) => {
+            schoolYearValue = value;
+            filtered();
+          }
+        "
+        @refresh="
+          async () => {
+            schoolYearValue = const_sy;
+            await filtered();
+          }
+        "
+        :showClose="true"
       />
       <FSelect
         class="w-full mx-5 text-md"
-        :options="diploma"
-        :modelValue="` Select grade`"
-        v-model="diplomaValue"
+        :options="gradeList"
+        :modelValue="const_gr"
+        :title="const_gr"
+        @update:modelValue="
+          (value) => {
+            gradeValue = value;
+            filter_grade(gradeValue);
+          }
+        "
+        @refresh="
+          async () => {
+            gradeValue = const_gr;
+            await filtered();
+          }
+        "
+        :showClose="true"
+      />
+      <FSelect
+        class="w-full text-md"
+        :options="tuitionFeesList"
+        :modelValue="const_tf"
+        :title="const_tf"
+        @update:modelValue="
+          (value) => {
+            tuitionFeesValue = value;
+            filter_tuitionFees(tuitionFeesValue);
+          }
+        "
+        @refresh="
+          async () => {
+            tuitionFeesValue = const_tf;
+            await filtered();
+          }
+        "
+        :showClose="true"
       />
     </div>
     <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
         <FSelect
-          class="w-20"
+          style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
           :title="`Record`"
           @update:modelValue="
             async (value) => {
+              currentPage = 1;
               if (value != 'other') {
                 entryValue = value;
-                currentPage = 1;
               } else
                 entryValue = await alert_input_1(
                   'number',
@@ -72,6 +117,10 @@
       @edit="
         async (value) => {
           item = await http_getOne(CollectionRates, value);
+          item.money_d = formatCurrencyVND(item.money);
+          item.grade = item.grade._id;
+          item.schoolYear = item.schoolYear._id;
+          item.tuitionFees = item.tuitionFees._id;
           activeEdit = true;
         }
       "
@@ -105,8 +154,15 @@
     :name="`CollectionRates`"
     :title="`Edit a collection rates`"
     :buttonName="`Edit`"
+    :disabled="true"
     @cancel="(value) => (activeEdit = value)"
     @submit="edit()"
+    @money="
+      (value) => {
+        item.money_d = formatCurrencyVND(value);
+        item.money = value;
+      }
+    "
   />
 </template>
 
@@ -195,6 +251,7 @@ import {
 //
 import {
   items,
+  items_cp,
   item,
   background,
   searchText,
@@ -214,6 +271,25 @@ import {
   activeEdit,
   deleteValue,
   setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
 } from "../../../../components/common/index.js";
 
 const itemAdd = ref({
@@ -234,6 +310,7 @@ const create = async () => {
     activeAdd.value = false;
     refresh();
   }
+  backup_items();
 };
 
 const edit = async () => {
@@ -244,6 +321,7 @@ const edit = async () => {
     activeEdit.value = false;
     refresh();
   }
+  backup_items();
 };
 
 const remove = async (item) => {
@@ -278,6 +356,7 @@ const remove = async (item) => {
       }
     }
   }
+  backup_items();
 };
 
 const refresh = async () => {
@@ -289,10 +368,22 @@ const refresh = async () => {
     grade: item.grade.name,
     schoolYear: item.schoolYear.name,
     tuitionFees: item.tuitionFees.name,
+    grade_id: item.grade._id,
+    schoolYear_id: item.schoolYear._id,
+    tuitionFees_id: item.tuitionFees._id,
   }));
 };
 
+const filtered = async () => {
+  await refresh();
+  filters();
+};
+
 onBeforeMount(async () => {
-  refresh();
+  await refresh();
+  backup_items();
+  gradeList.value = await http_getAll(Grade);
+  schoolYearList.value = await http_getAll(SchoolYear);
+  tuitionFeesList.value = await http_getAll(TuitionFees);
 });
 </script>

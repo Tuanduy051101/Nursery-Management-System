@@ -35,9 +35,15 @@ exports.create = async (req, res, next) => {
         const check_account = await Account.exists({ $and: [{ name: user_name }] });
 
         if (check || check_account) {
+            if (check_account) {
+                return res.send({
+                    error: true,
+                    message: `User name already exists.`
+                });
+            }
             return res.send({
                 error: true,
-                message: 'Already exists.'
+                message: `E-mail or phone already exists.`
             });
         } else {
             const hashedPassword = await hashPassword(password);
@@ -75,7 +81,7 @@ exports.create = async (req, res, next) => {
 
             return res.send({
                 error: false,
-                message: [document]
+                message: 'Successfully created.'
             });
         }
     } catch (error) {
@@ -183,28 +189,64 @@ exports.find = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-    const { name, gender, phone, email, address, position, diploma } = req.body;
-    if (!name || !gender || !phone || !email || !address || !position || !diploma) {
+    const { name, gender, phone, email, address, position } = req.body;
+    if (!name || !gender || !phone || !email || !address || !position) {
         return res.send({
             error: true,
             message: 'Missing required fields.'
         })
     }
     const check = await Teacher.exists({
-        _id: !req.params.id,
+        _id: req.params.id,
         $or: [
             { phone: phone },
             { email: email }
         ]
     });
     if (check) {
+        const check_phone = await Teacher.exists({
+            _id: req.params.id,
+            $and: [
+                { phone: phone },
+            ]
+        });
+        const check_email = await Teacher.exists({
+            _id: req.params.id,
+            $and: [
+                { email: email }
+            ]
+        });
+        const check_info = await Teacher.exists({
+            _id: req.params.id,
+            $and: [
+                { name: name },
+                { gender: gender },
+                { address: address },
+                { position: position },
+                { phone: phone },
+                { email: email }
+            ]
+        });
+        if (!check_phone) {
+            await Teacher.findByIdAndUpdate(req.params.id, { name, gender, address, position, phone }, { new: true });
+        }
+        if (!check_email) {
+            await Teacher.findByIdAndUpdate(req.params.id, { name, gender, address, position, email }, { new: true });
+        }
+        if (!check_info) {
+            await Teacher.findByIdAndUpdate(req.params.id, { name, gender, address, position }, { new: true });
+            return res.send({
+                error: false,
+                message: 'Successfully updated.'
+            });
+        }
         return res.send({
             error: true,
             message: 'Already exists.'
         });
     }
     try {
-        const teacher = await Teacher.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const teacher = await Teacher.findByIdAndUpdate(req.params.id, { name, gender, phone, email, address, position }, { new: true });
         res.send({
             error: false,
             message: teacher,
