@@ -5,62 +5,48 @@ const Error = require('http-errors');
 const { letters_24 } = require('../utils/common');
 
 exports.create = async (req, res, next) => {
-    if (Object.keys(req.body).length === 0) {
-        return next(Error(400, 'Request body is empty.'));
-    }
-
-    const { name, gender, phone, email, address, relationship, parents, child } = req.body;
-
-    if (!name || !gender || !phone || !email || !address || !relationship || !parents || !child) {
-        return res.send({
-            error: true,
-            message: 'Missing required fields.',
-        })
-    }
-
-    const check = await ParentDetails.exists({
-        $and: [
-            { name: name },
-            { relationship: relationship },
-            { child: child },
-            { parents: parents },
-        ]
-    });
-
-    if (check) {
-        return res.send({
-            error: true,
-            message: 'Already exists.',
-        });
-    }
-
+    console.log(req.body);
     try {
-        const document = await ParentDetails.create({
-            name,
-            gender,
-            phone,
-            email,
-            address,
-            relationship,
+        const { name, gender, phone, email, address, relationship, child, parents } = req.body;
+
+        if (!name || !phone || !address || !relationship || !child || !parents) {
+            return res.send({
+                error: true,
+                message: 'Thiếu những trường bắt buộc.'
+            })
+        }
+
+        const check = await ParentDetails.exists({
             child: child,
-            parents,
+            name: name,
+            phone: phone,
         });
 
-        const updatePromises = [
-            Children.findByIdAndUpdate(child, { $push: { parentDetails: document._id } }),
-            Parents.findByIdAndUpdate(parents, { $push: { parentDetails: document._id } })
-        ];
+        if (check) {
+            return res.send({
+                error: true,
+                message: 'Phụ huynh đã tồn tại.'
+            })
+        }
 
-        await Promise.all(updatePromises);
+        if (!email) req.body.email = 'không có';
+
+        const document = await ParentDetails.create(req.body);
+
+        await Children.findByIdAndUpdate(child, { $push: { parentDetails: document._id } });
+        await Parents.findByIdAndUpdate(parents, { $push: { parentDetails: document._id } })
 
         return res.send({
             error: false,
-            message: [document]
+            message: 'Đã thêm thành công.'
         });
     } catch (error) {
-        return next(Error(500, 'Error saving'));
+        console.log(error);
+        return next(
+            Error(500, 'Error saving')
+        )
     }
-};
+}
 
 exports.findAll = async (req, res, next) => {
     try {
@@ -80,7 +66,7 @@ exports.delete = async (req, res, next) => {
         if (children[0].parentDetails.length <= 1) {
             return res.send({
                 error: true,
-                message: 'Each child requires at least two parents.'
+                message: 'Mỗi trẻ phải có ít nhất một phụ huynh.'
             })
         }
 
@@ -93,7 +79,10 @@ exports.delete = async (req, res, next) => {
 
         await Promise.all(updatePromises);
 
-        return res.send(document);
+        return res.send({
+            error: false,
+            message: 'Đã xoá thành công.'
+        });
     } catch (error) {
         console.log(error);
     }
@@ -109,30 +98,30 @@ exports.find = async (req, res, next) => {
 };
 
 exports.update = async (req, res, next) => {
-    const { name, gender, phone, email, address, relationship } = req.body;
+    console.log(req.body)
+    const { name, gender, phone, email, address, relationship, child } = req.body;
     const parentDetails_id = req.params.id;
-    if (!name || !gender || !phone || !email || !address || !relationship) {
+    if (!name || !gender || !phone || !address || !relationship) {
         return res.send({
             error: true,
-            message: 'Missing required fields.',
+            message: 'Thiếu những trường bắt buộc.',
         })
     }
-
     const check = await ParentDetails.exists({
-        name, relationship,
+        name, child, phone, email, address, relationship, gender
     });
 
     if (check) {
         return res.send({
             error: true,
-            message: 'Already exists.',
+            message: 'Phụ huynh đã tồn tại.',
         });
     }
     try {
-        const document = await ParentDetails.findByIdAndUpdate(parentDetails_id, { name, gender, phone, email, address, relationship }, { new: true });
+        const document = await ParentDetails.findByIdAndUpdate(parentDetails_id, { name, gender, phone, email: email.length != 0 ? email : 'không có', address, relationship }, { new: true });
         return res.send({
-            error: true,
-            message: document,
+            error: false,
+            message: 'Cập nhật thông tin thành công.',
         })
     } catch (error) {
         return next(Error(500, 'Error updating document'));

@@ -1,5 +1,5 @@
 <template>
-  <div class="w-screen h-screen flex bg-slate-800">
+  <div class="w-screen h-screen flex bg-white">
     <div class="flex-1">
       <img
         src="https://cdn.pixabay.com/photo/2016/04/12/19/01/three-1325106__340.png"
@@ -12,22 +12,23 @@
         <img
           src="../assets/images/logo.png"
           alt=""
-          style="width: 250px"
+          style="width: 400px"
           class=""
         />
       </div>
-      <span class="mt-5 ml-4 text-xl font-black text-white">Welcome to</span>
-      <div class="flex mt-4">
-        <span class="text-green-500 text-xl ml-2 uppercase tracking-widest logo"
-          >Nursery</span
-        >
-        <span
-          class="text-yellow-500 text-xl ml-2 uppercase tracking-widest logo"
-          >Management</span
-        >
-        <span class="text-red-500 text-xl ml-2 uppercase tracking-widest logo"
-          >System</span
-        >
+      <div class="flex -mt-10">
+        <span class="text-3xl ml-2 font-extrabold">
+          <span
+            class="text-yellow-600"
+            style="text-shadow: 2px 2px 4px rgba(225, 5, 5, 0.5)"
+            >Hệ Thống&ensp;</span
+          >
+          <span
+            class="text-blue-500"
+            style="text-shadow: 2px 2px 4px rgba(11, 4, 234, 0.5)"
+            >Quản Lý Nhà Trẻ</span
+          >
+        </span>
       </div>
       <Form
         class="flex flex-col mx-4 text-white"
@@ -35,24 +36,26 @@
         :validation-schema="formSchema"
       >
         <div class="flex flex-col mt-10 mb-5">
-          <label for="email" class="mb-2 font-black text-lg">User Name</label>
+          <label for="email" class="mb-2 font-black text-slate-900 text-lg"
+            >Tên đăng nhập</label
+          >
           <Field
             v-model="user.username"
             name="userName"
             type="text"
             autocomplete="off"
             placeholder=""
-            class="py-2 px-2 w-96 border bg-inherit border-solid border-slate-600 rounded-md focus:border-slate-300"
+            class="py-2 px-2 w-96 border bg-inherit text-slate-900 border-solid border-slate-300 rounded-md focus:border-slate-900 outline-none"
           />
           <ErrorMessage class="mt-2 text-red-500" name="userName" />
         </div>
         <div class="flex flex-col">
-          <label for="password" class="mb-2 font-black text-lg">Password</label>
+          <label for="password" class="mb-2 font-black text-lg text-slate-900">Mật khẩu</label>
           <div class="flex-1 relative">
             <span class="absolute inset-y-0 right-0 flex items-center">
               <span
                 @click="showPassword = !showPassword"
-                class="material-symbols-outlined mr-2 text-slate-300 cursor-pointer"
+                class="material-symbols-outlined mr-2 text-slate-600 cursor-pointer"
               >
                 {{ showPassword ? "visibility" : "visibility_off" }}
               </span>
@@ -60,7 +63,7 @@
             <Field
               v-model="user.password"
               :type="showPassword ? 'text' : 'password'"
-              class="bg-inherit w-full border-slate-600 rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+              class="bg-inherit w-full border-slate-300 text-slate-900 rounded-md px-2 py-1.5 border border-solid focus:border-slate-900 outline-none"
               style=""
               name="password"
               placeholder=""
@@ -72,8 +75,8 @@
         <div class="flex flex-col mt-10">
           <input
             type="submit"
-            value="Login"
-            class="w-96 border border-solid rounded-md py-2 border-blue-700 text-xl hover:bg-blue-700 hover:text-white cursor-pointer"
+            value="Đăng nhập"
+            class="w-96 border border-solid rounded-md py-2 border-purple-500 bg-purple-500 text-xl hover:shadow-lg hover:shadow-yellow-500/50 cursor-pointer"
           />
         </div>
       </Form>
@@ -137,8 +140,8 @@ import {
 } from "../assets/js/imports";
 
 const formSchema = yup.object().shape({
-  userName: yup.string().required("Username needs to have value."),
-  password: yup.string().required("Password needs to have value."),
+  userName: yup.string().required("Đây là trường bắt buộc."),
+  password: yup.string().required("Đây là trường bắt buộc."),
 });
 
 const user = ref({
@@ -161,11 +164,51 @@ const login = async () => {
       sessionStorage.setItem("token", User.token);
       sessionStorage.setItem("username", User.username);
       sessionStorage.setItem("role", User.role);
+      sessionStorage.setItem("owner_id", User.owner._id);
       sessionStorage.setItem("owner", User.owner);
-      run_alert(alert_success(User.message)).then(() => {
-        sessionStorage.setItem("activeIndex", '1000');
+      sessionStorage.setItem("owner_name", User.owner.name);
+      sessionStorage.setItem(
+        "owner_childcareCenter",
+        User.owner.childcareCenter
+      );
+      sessionStorage.setItem(
+        "owner_childcareCenterName",
+        User.owner.childcareCenterName
+      );
+      sessionStorage.setItem(
+        "owner_childcareCenterEmail",
+        User.owner.childcareCenterEmail
+      );
+      sessionStorage.setItem(
+        "owner_childcareCenterPhone",
+        User.owner.childcareCenterPhone
+      );
+      sessionStorage.setItem(
+        "owner_childcareCenterAddress",
+        User.owner.childcareCenterAddress
+      );
+      sessionStorage.setItem("owner_isHeadquarters", User.owner.isHeadquarters);
+      run_alert(alert_success(User.message)).then(async () => {
+        sessionStorage.setItem("activeIndex", "1000");
         sessionStorage.removeItem("activeIndexChild");
-        router.push({ name: "Dashboard" });
+
+        if (User.role == "phụ huynh") router.push({ name: "Dashboard-child" });
+        if (User.role == "giáo viên quản lý trẻ")
+          router.push({ name: "ClassRoom-teacher" });
+        if (User.role == "nhân viên bếp")
+          router.push({ name: "MealTicket-chef" });
+        if (User.role == "kế toán")
+          router.push({ name: "Dashboard-accountant" });
+        if (User.role == "quản trị hệ thống" || User.role == "ban giám hiệu")
+          router.push({ name: "Dashboard" });
+
+        const token = sessionStorage.getItem("token");
+        const isHeadquarters = sessionStorage.getItem("owner_isHeadquarters");
+        const isToken = await Account.verifyToken({
+          token,
+          isHeadquarters,
+        });
+        console.log(isToken);
       });
     }
   } catch (error) {

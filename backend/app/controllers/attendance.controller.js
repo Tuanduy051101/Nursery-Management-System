@@ -1,37 +1,39 @@
-const { Attendance, Children, Classes, Session } = require("../models/model");
+const { Attendance, Children, Classes, Session, MealTicket, Meal, Evaluate } = require("../models/model");
 const Error = require("http-errors");
 
 exports.create = async (req, res, next) => {
+  console.log(req.body);
   try {
-    const { present, reason = 'không có', date, session, child, classes } = req.body;
+    const { present = 'true', reason = 'không có', date, session, children, classes } = req.body;
 
-    if (!present || !date || !session || !child || !classes) {
+    if (!date || !session || !children || !classes) {
       return res.send({
         error: true,
-        message: 'Missing required fields.'
+        message: 'Thiếu những trường bắt buộc.'
       });
     }
 
-    const document = await Attendance.create({
-      present,
-      reason,
-      date,
-      child,
-      classes,
-      session,
-    });
+    for (let child of children) {
+      const document = await Attendance.create({
+        present,
+        reason,
+        date,
+        child,
+        classes,
+        session,
+      });
+      const updatePromises = [
+        Children.findByIdAndUpdate(child, { $push: { attendance: document._id } }, { new: true }),
+        Session.findByIdAndUpdate(session, { $push: { attendance: document._id } }, { new: true }),
+        Classes.findByIdAndUpdate(classes, { $push: { attendance: document._id } }, { new: true })
+      ];
 
-    const updatePromises = [
-      Children.findByIdAndUpdate(child, { $push: { attendance: document._id } }, { new: true }),
-      Session.findByIdAndUpdate(session, { $push: { attendance: document._id } }, { new: true }),
-      Classes.findByIdAndUpdate(classes, { $push: { attendance: document._id } }, { new: true })
-    ];
-
-    await Promise.all(updatePromises);
+      await Promise.all(updatePromises);
+    }
 
     return res.send({
       error: false,
-      message: [document],
+      message: 'Đã tạo thành công.',
     });
   } catch (error) {
     return next(Error(500, "Error saving"));
@@ -102,9 +104,56 @@ exports.find = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const { present, reason } = req.body;
+    console.log(req.body);
     const attendance = await Attendance.findByIdAndUpdate(req.params.id, { present, reason }, { new: true });
-    return res.send(attendance);
+
+    let meals = await Meal.find({ session: attendance.session, date: attendance.date }).populate([
+      {
+        path: 'dish',
+        populate: {
+          path: 'ingredient',
+          populate: {
+            path: 'foodstuff'
+          }
+        }
+      }
+    ]);
+    // console.log(meals[0].dish);
+
+    if (meals.length != 0) {
+      meals = meals.map(meal => meal._id);
+    }
+
+    const check_mealTicket = await MealTicket.exists({
+      classes: attendance.classes,
+      child: attendance.child,
+      meal: { $in: meals },
+    });
+
+    if (!check_mealTicket && meals.length != 0 && (present == true || present == 'true')) {
+
+      const childInfo = await Children.findById(attendance.child);
+
+      const mealTicket = await MealTicket.create({
+        note: 'không có',
+        classes: attendance.classes,
+        child: attendance.child,
+        meal: meals[0],
+        evaluate: 'yêu thích',
+        remark: 'không có'
+      });
+
+      await Classes.findByIdAndUpdate(attendance.classes, { $push: { mealTicket: mealTicket._id } });
+      await Children.findByIdAndUpdate(attendance.child, { $push: { mealTicket: mealTicket._id } });
+      await Meal.findByIdAndUpdate(meals[0], { $push: { mealTicket: mealTicket._id } });
+    }
+
+    return res.send({
+      error: false,
+      message: 'Đã lưu thành công.'
+    });
   } catch (error) {
+    console.log(error);
     return next(Error(500, "Error updating document"));
   }
 };

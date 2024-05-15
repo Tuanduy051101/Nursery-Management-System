@@ -37,18 +37,48 @@ const foodstuffRouter = require('./app/routes/foodstuff.route');
 const nutritionalIngredientRouter = require('./app/routes/nutritionalIngredient.route');
 const nutritionalRouter = require('./app/routes/nutritional.route');
 const attendanceRouter = require('./app/routes/attendance.route');
-// const paymentRouter = require('./app/routes/payment.route');
-// const paymentDetailRouter = require('./app/routes/paymentDetail.route');
+const paymentRouter = require('./app/routes/payment.route');
+const paymentDetailRouter = require('./app/routes/paymentDetail.route');
 // const evaluateRouter = require('./app/routes/evaluate.route');
 const evaluateRouter = require('./app/routes/evaluate.route');
 const accountRouter = require('./app/routes/account.route');
 const mailRouter = require('./app/routes/mail.route');
-
+const sessionRouter = require('./app/routes/session.route');
+const childcareCenterRouter = require('./app/routes/childcareCenter.route');
+const allergiesRouter = require('./app/routes/allergies.route');
+const allergenRouter = require('./app/routes/allergen.route');
+const notificationRouter = require('./app/routes/notification.route');
 
 const app = express();
 app.use(cors());
+const corsOptions = {
+    origin: 'http://localhost:4000', // Địa chỉ của ứng dụng Vue
+};
+
+// app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
+
+const http = require('http');
+const { Server } = require('socket.io');
+
+const server = http.createServer(app);
+const io = new Server(server);
+
+// default
+io.on('connection', (socket) => {
+    console.log('A user connected');
+    setInterval(() => {
+        socket.emit('birthdayNotification', 'Chúc mừng sinh nhật!');
+    }, 5000)
+    // default
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
+
+// Cấu hình để serve các tài nguyên cần thiết cho socket.io
+app.use('/socket.io', express.static(__dirname + '/node_modules/socket.io-client/dist'));
 
 // use router
 app.use('/api/schoolYear', schoolYearRouter);
@@ -78,8 +108,13 @@ app.use('/api/attendance', attendanceRouter);
 app.use('/api/evaluate', evaluateRouter);
 app.use('/api/account', accountRouter);
 app.use('/api/mail', mailRouter);
-// app.use('/api/payment', paymentRouter);
-// app.use('/api/paymentDetail', paymentDetailRouter);
+app.use('/api/session', sessionRouter);
+app.use('/api/payment', paymentRouter);
+app.use('/api/paymentDetail', paymentDetailRouter);
+app.use('/api/childcareCenter', childcareCenterRouter);
+app.use('/api/allergies', allergiesRouter);
+app.use('/api/allergen', allergenRouter);
+app.use('/api/notification', notificationRouter);
 
 // simple route
 app.get('/', (req, res, next) => {
@@ -101,5 +136,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-module.exports = app;
+module.exports = {
+    app, server
+};
 

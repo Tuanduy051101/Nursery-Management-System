@@ -7,7 +7,7 @@ exports.create = async (req, res, next) => {
         if (!name) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.',
+                message: 'Thiếu những trường bắt buộc.',
             });
         }
 
@@ -15,14 +15,15 @@ exports.create = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists.',
+                message: 'Bằng cấp đã tồn tại.',
             });
         }
 
-        await Diploma.create({ name });
+        const document = await Diploma.create({ name });
         return res.send({
             error: false,
-            message: 'Successfully created.',
+            message: 'Đã tạo thành công.',
+            document: document,
         });
     } catch (error) {
         return next(createError(500, 'Error saving document'));
@@ -31,7 +32,14 @@ exports.create = async (req, res, next) => {
 
 exports.findAll = async (req, res, next) => {
     try {
-        const documents = await Diploma.find();
+        const documents = await Diploma.find().populate([
+            {
+                path: 'teacher',
+                populate: {
+                    path: 'childcareCenter'
+                }
+            }
+        ]);
         res.send(documents);
     } catch (error) {
         return next(createError(500, 'Error finding documents'));
@@ -44,7 +52,7 @@ exports.delete = async (req, res, next) => {
         const result = await Diploma.findByIdAndDelete(req.params.id);
         res.send({
             error: false,
-            message: 'Successfully deleted.',
+            message: 'Đã xoá thành công.',
         });
     } catch (error) {
         return next(createError(500, 'Error deleting document'));
@@ -70,7 +78,7 @@ exports.update = async (req, res, next) => {
         if (!name) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.',
+                message: 'Thiếu những trường bắt buộc.',
             });
         }
 
@@ -78,14 +86,14 @@ exports.update = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists.',
+                message: 'Bằng cấp đã tồn tại.',
             });
         }
 
         await Diploma.findByIdAndUpdate(_id, { name });
         return res.send({
             error: false,
-            message: 'Successfully updated.',
+            message: 'Đã cập nhật thông tin thành công.',
         });
     } catch (error) {
         return next(createError(500, 'Error saving document'));

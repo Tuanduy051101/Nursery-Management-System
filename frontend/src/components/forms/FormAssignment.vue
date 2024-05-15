@@ -2,126 +2,167 @@
   <div
     class="fixed top-0 right-0 w-screen h-screen z-50 flex items-center justify-center"
   >
-    <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
     <div
-      class="bg-slate-800 mx-5 w-4/12 overflow-auto absolute rounded-md shadow-xl border border-solid border-slate-300"
-      style="min-height: 100px; max-height: 100vh"
+      v-if="!activeTeacher"
+      class="bg-slate-900 h-screen opacity-70 flex-1 relative"
+    ></div>
+    <div
+      v-if="activeTeacher"
+      class="bg-slate-900 h-screen opacity-70 flex-1 relative"
+    ></div>
+    <teacher_assignment
+      v-if="activeTeacher"
+      class="bg-white absolute w-10/12"
+      @submit="
+        (value) => {
+          activeTeacher = false;
+          item.teachers = value;
+        }
+      "
+      @cancel="activeTeacher = false"
+      :schoolYear_id="item.schoolYear"
+      :class_id="item.classes"
+    />
+    <div
+      v-show="!activeTeacher"
+      class="bg-white mx-5 w-4/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
+      style="min-height: 100px"
     >
       <div
-        class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
+        class="flex flex-row justify-between items-center px-3 py-3 text-slate-900 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
       >
         <span>{{ title }}</span>
         <span
-          @click="cancel"
-          class="material-symbols-outlined cursor-pointer text-slate-600 hover:text-slate-300"
+          @click="$emit('cancel', false)"
+          class="material-symbols-outlined cursor-pointer text-slate-900 hover:text-red-500"
         >
           close
         </span>
       </div>
-      <div class="flex flex-col my-5 mx-3">
-        <!-- <Form v-slot="{ errors }"> -->
+      <div
+        class="flex flex-col my-5 mx-3 overflow-auto pr-3"
+        style="max-height: calc(100vh - 250px)"
+      >
         <div>
-          <!-- school year -->
-          <div class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 -mt-2.5 ml-1 flex items-center"
-              >School year<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+          <div class="flex flex-col text-slate-900">
+            <label for="" class="flex items-center"
+              >Năm học<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
             <FSelect
               @update:modelValue="(value) => (item.schoolYear = value)"
-              @update="(value) => (runGet = value)"
-              :options="sYear"
-              :modelValue="mSYear.name"
-              class="border-slate-600"
+              :options="schoolYear"
+              :modelValue="`Chọn`"
             />
+            <span
+              v-if="!item.schoolYear"
+              class="text-red-500 mt-2 ml-0.5 text-sm"
+              >Đây là trường bắt buộc.</span
+            >
           </div>
-          <!-- grade -->
-          <div class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Grade<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+          <div class="flex flex-col text-slate-900">
+            <label for="" class="mt-2.5 flex items-center"
+              >Khối học<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
             <FSelect
               @update:modelValue="(value) => (item.grade = value)"
-              @update="(value) => (runGet = value)"
               :options="grade"
-              :modelValue="mGrade.name"
-              class="border-slate-600"
+              :modelValue="`Chọn`"
+              :disabled="item?.schoolYear ? false : true"
             />
+            <span v-if="!item.grade" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >Đây là trường bắt buộc.</span
+            >
           </div>
           <!-- classes -->
-          <div class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Classes<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+          <div class="flex flex-col text-slate-900">
+            <label for="" class="mt-2.5 flex items-center"
+              >Lớp học<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
             <FSelect
               @update:modelValue="(value) => (item.classes = value)"
-              @update="(value) => (runGet = value)"
-              :options="classes"
-              :modelValue="mClasses.name"
-              :disabled="classes.length == 0 ? `true` : `false`"
-              class="border-slate-600"
+              :options="
+                classes.filter(
+                  (item1) =>
+                    item1.grade._id == item.grade &&
+                    item1.schoolYear._id == item.schoolYear
+                )
+              "
+              :modelValue="`Chọn`"
+              :disabled="item?.grade ? false : true"
             />
+            <span v-if="!item.classes" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >Đây là trường bắt buộc.</span
+            >
           </div>
           <!-- teacher -->
-          <div class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Teacher<span
-                class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+          <div class="flex flex-col text-slate-900">
+            <label for="" class="mt-2.5 flex items-center"
+              >Giáo viên viên<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
             <FSelect
-              @update:modelValue="(value) => (item.teacher = value)"
-              @update="(value) => (runGet = value)"
-              :options="teacher"
-              :modelValue="mTeacher.name"
-              :class="!item.teacher ? 'border-red-500' : 'border-slate-600'"
+              @click="activeTeacher = true"
+              :modelValue="
+                item?.teachers
+                  ? item.teachers.length != 0
+                    ? 'Đã chọn'
+                    : 'Chọn'
+                  : 'Chọn'
+              "
+              :disabled="item?.classes ? false : true"
             />
-            <span v-if="!item.teacher" class="text-red-500 mt-1 ml-1 text-sm"
-              >Please select a value !</span
+            <span
+              v-if="item.teachers"
+              class="text-green-500 mt-2 ml-0.5 text-sm"
+              >Đã chọn {{ item.teachers.length }}
+              {{ item.teachers.length == 1 ? "giáo viên" : "giáo viên" }}</span
+            >
+            <span v-if="!item.teachers" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >Đây là trường bắt buộc.</span
             >
           </div>
           <!-- duty -->
-          <div class="flex flex-col text-slate-300">
-            <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-              >Duty<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+          <div class="flex flex-col text-slate-900">
+            <label for="" class="mt-2.5 flex items-center"
+              >Nhiệm vụ<span class="text-red-500 text-3xl relative ml-0.5"
                 >*</span
               ></label
             >
             <FSelect
               @update:modelValue="(value) => (item.duty = value)"
-              @update="(value) => (runGet = value)"
               :options="duty"
-              :modelValue="mDuty.name"
+              :modelValue="`Chọn`"
               :class="!item.duty ? 'border-red-500' : 'border-slate-600'"
             />
-            <span v-if="!item.duty" class="text-red-500 mt-1 ml-1 text-sm"
-              >Please select a value !</span
+            <span v-if="!item.duty" class="text-red-500 mt-2 ml-0.5 text-sm"
+              >Đây là trường bắt buộc.</span
             >
           </div>
           <!-- note -->
-          <div class="flex flex-col text-slate-300">
-            <label for="" class="mb-4 mt-5 ml-1 flex items-center"
-              >Note</label
+          <div class="flex flex-col text-slate-900">
+            <label for="" class="mt-2.5 flex items-center"
+              >Ghi chú<span class="text-black text-3xl relative ml-0.5"
+                >*</span
+              ></label
             >
             <textarea
               v-model="item.note"
-              class="bg-inherit overflow-auto border border-solid border-slate-600 rounded-md focus:border-slate-300 p-2"
+              class="bg-inherit border border-solid border-slate-300 rounded-md focus:border-slate-900 p-2"
               style="outline: none; max-height: 80px"
             ></textarea>
           </div>
           <button
-            @click="submit"
-            class="text-slate-300 border border-solid border-green-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:bg-green-500 mt-5 hover:text-slate-100"
+            @click="$emit('submit', item)"
+            class="text-white border mt-5 border-solid border-blue-500 bg-blue-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
           >
-            Add
+            Thêm
           </button>
           <!-- </Form> -->
         </div>
@@ -130,246 +171,183 @@
   </div>
 </template>
 
-<script>
-import * as yup from "yup";
-import { Form, Field, ErrorMessage } from "vee-validate";
-import IAdd from "../icons/Add.vue";
-import FSelect from "../forms/Select.vue";
-import SYear from "../../services/sYear.service";
-import Grade from "../../services/grade.service";
-import Classes from "../../services/classes.service";
-import TFees from "../../services/tuitionFees.service";
-import Teacher from "../../services/teacher.service";
-import Duty from "../../services/duty.service";
-import { FormatMoney } from "format-money-js";
+<script setup>
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // Swal
+  Swal,
+  // components
+  Navbar,
+  Sidebar,
+  Footer,
+  Login,
+  BAdd,
+  BEdit,
+  BDelete,
+  BCancel,
+  FSelect,
+  FSearch,
+  Table,
+  Pagination,
+  FormOne,
+  ASuccess,
+  FormChildren,
+  FormAssignment,
+  teacher_assignment,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  alert_input_1,
+  alert_remove,
+  // https
+  http_getAll,
+  http_getOne,
+  http_deleteOne,
+  http_create,
+  http_update,
+  // format money
+  formatCurrencyVND,
+  convertToWords,
+  // format date-time
+  formatDate,
+  formatDateTime,
+  formatDateTime_2,
+  // eventBus
+  eventBus,
+} from "../../assets/js/imports";
+//
+import {
+  items,
+  items_cp,
+  background,
+  searchText,
+  searchWith,
+  searchOption,
+  entryValue,
+  typing_entry,
+  option_entry,
+  mode,
+  option_mode,
+  numberOfPages,
+  totalRow,
+  startRow,
+  endRow,
+  currentPage,
+  activeAdd,
+  activeEdit,
+  deleteValue,
+  setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  ageList,
+  ageValue,
+  filter_age,
+  genderList,
+  genderValue,
+  filter_gender,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
+} from "../common/index.js";
 
-export default {
-  components: {
-    Form,
-    Field,
-    ErrorMessage,
-    IAdd,
-    FSelect,
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
   },
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    item: {
-      type: Object,
-      default: {},
-    },
-    placeholder: {
-      type: String,
-      default: "",
-    },
-    name: {
-      type: String,
-      default: "",
-    },
+  itemAdd: {
+    type: Object,
+    default: {},
+    required: true,
   },
-  emits: ["cancel", "submit"],
-  watch: {
-    async runGet() {
-      await this.get();
-      this.runGet = false;
-    },
-    mSYear() {
-      if (this.item.grade.length != 0) {
-        this.getAllClasses();
-      }
-    },
-    mGrade() {
-      if (this.item.schoolYear.length != 0) {
-        this.getAllClasses();
-      }
-    },
+  placeholder: {
+    type: String,
+    default: "",
   },
-  data() {
-    return {
-      sYear: [],
-      tFees: [],
-      grade: [],
-      classes: [],
-      teacher: [],
-      duty: [],
-      mSYear: {},
-      mTFees: {},
-      mGrade: {},
-      mClasses: {},
-      mDuty: {},
-      mTeacher: {},
-      runGet: false,
-      error: false,
-    };
+  name: {
+    type: String,
+    default: "",
   },
-  methods: {
-    formatMoney(money) {
-      const fm = new FormatMoney({
-        decimals: 0,
-        append: true,
-      });
+});
 
-      const temp = fm.from(money, { symbol: "vnđ" });
+const item = computed(() => props.itemAdd);
 
-      return temp;
-    },
-    cancel() {
-      this.$emit("cancel", false);
-    },
-    async submit() {
-      if (!this.item.teacher || !this.item.duty) {
-      } else this.$emit("submit");
-    },
+const activeTeacher = ref(false);
 
-    async getAllSYear() {
-      try {
-        this.sYear = await SYear.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
+const classes = ref([]);
+const schoolYear = ref([]);
+const grade = ref([]);
+const duty = ref([]);
 
-    async getAllTFees() {
-      try {
-        this.tFees = await TFees.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
+onBeforeMount(async () => {
+  const childcareCenter = sessionStorage.getItem("owner_childcareCenter");
 
-    async getAllGrade() {
-      try {
-        this.grade = await Grade.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAllTeacher() {
-      try {
-        this.teacher = await Teacher.getAll();
-        this.teacher = this.teacher.filter(
-          (value, index) => {
-            return value.account.role == 'GVQLT';
-          }
-        )
-        this.teacher = this.teacher.filter(
-          (value, index) => {
-            var check = false;
-            for(let value1 of value.assignment) {
-              if (value1.classes.schoolYear.name == new Date().getFullYear()) {
-                check = true;
-              }
-            }
-            return check == false;
-          }
-        )
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAllDuty() {
-      try {
-        this.duty = await Duty.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAllClasses() {
-      try {
-        this.classes = await Classes.getAll();
-        this.classes = this.classes.filter((value, index) => {
-          return (
-            value.schoolYear._id == this.item.schoolYear &&
-            value.grade._id == this.item.grade
-          );
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getSYear() {
-      try {
-        if (this.item.schoolYear.length != 0) {
-          this.mSYear = await SYear.get(this.item.schoolYear);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getTFees() {
-      try {
-        this.mTFees = await TFees.get(this.item.tuitionFees);
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getGrade() {
-      try {
-        if (this.item.grade.length != 0) {
-          this.mGrade = await Grade.get(this.item.grade);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getClasses() {
-      try {
-        const temp = await Classes.get(this.item.classes);
-        this.mClasses = temp[0];
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getTeacher() {
-      try {
-        this.mTeacher = await Teacher.get(this.item.teacher);
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getDuty() {
-      try {
-        this.mDuty = await Duty.get(this.item.duty);
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAll() {
-      await this.getAllSYear();
-      await this.getAllTFees();
-      await this.getAllGrade();
-      await this.getAllTeacher();
-      await this.getAllDuty();
-    },
-
-    async get() {
-      await this.getSYear();
-      await this.getTFees();
-      if (this.item.schoolYear.length != 0) {
-        await this.getGrade();
-      }
-      if (this.item.schoolYear.length != 0 && this.item.grade.length != 0) {
-        await this.getClasses();
-      }
-      await this.getTeacher();
-      await this.getDuty();
-    },
-  },
-  async created() {
-    await this.getAll();
-    // await this.get();
-  },
-};
+  classes.value = await http_getAll(Classes);
+  duty.value = await http_getAll(Duty);
+  schoolYear.value = (await http_getAll(SchoolYear)).filter(
+    (i) => i.childcareCenter._id == childcareCenter
+  );
+  grade.value = await http_getAll(Grade);
+});
 </script>

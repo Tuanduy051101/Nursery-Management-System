@@ -9,6 +9,9 @@ router.route('/')
 router.route('/signin')
     .post(account.signin)
 
+router.route('/verifyToken')
+    .post(account.verifyToken)
+
 router.route('/:id')
     .delete(account.delete)
     .get(account.find)

@@ -1,0 +1,12 @@
+Steps to setup react-native application
+https://microsoft.github.io/react-native-windows/docs/rnm-getting-started
+
+1. npm uninstall -g react-native-cli
+2. npm install -g react-native-cli
+3. npm install -g react-native
+4. npx react-native init MyReactNativeApp or npx react-native init MyReactNativeApp
+5. cd/folder
+6. npx pod-install
+7. npx react-native run-ios
+
+

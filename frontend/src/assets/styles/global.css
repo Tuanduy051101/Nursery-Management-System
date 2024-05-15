@@ -2,7 +2,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Barlow+Semi+Condensed:ital,wght@0,500;1,300&family=Charm&family=Cormorant:wght@300&family=Fuggles&family=Island+Moments&family=Nabla&family=Noto+Serif+HK:wght@200;900&family=Open+Sans:ital,wght@1,300&family=Roboto+Condensed:wght@300;400&family=Roboto:wght@100&family=Source+Serif+Pro:ital,wght@0,200;0,400;1,300&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Barlow+Semi+Condensed:ital,wght@0,500;1,300&family=Charm&family=Cormorant:wght@300&family=Freehand&family=Fuggles&family=Island+Moments&family=Lobster&family=Nabla&family=Noto+Serif+HK:wght@200;900&family=Open+Sans:ital,wght@1,300&family=Roboto+Condensed:wght@300;400&family=Roboto:wght@100&family=Source+Serif+Pro:ital,wght@0,200;0,400;1,300&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Geologica:wght@300&family=Inconsolata:wght@200;300;400;700&family=Kablammo&family=Kanit:wght@300&family=Merriweather:wght@300&family=Moirai+One&family=Orbit&family=Outfit:wght@100&family=Roboto+Serif:ital,wght@0,500;1,500;1,900&family=Roboto:wght@300&family=Sora:wght@100&family=Space+Grotesk:wght@300&family=Yeseva+One&display=swap");
-
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Roboto:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Poppins:wght@300&family=Roboto:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Nunito+Sans:opsz,wght@6..12,200&family=Poppins:wght@300&family=Roboto:wght@300&display=swap');
 :root {
   /* font */
   --font-family: "Kalam", cursive;
@@ -44,9 +47,14 @@
   box-sizing: border-box; /* kích thước tổng thể bao gồm cả border và padding */
   /* font-family:Arial, Helvetica, sans-serif; */
   /* font-family: var(--font-sidebar); */
-  /* letter-spacing: 1.3px;
-  word-spacing: 3px; */
+  letter-spacing: 0.5px;
+  word-spacing: 2px;
   font-family: Papyrus;
+  /* font-family: 'Roboto', sans-serif; */
+  /* font-family: 'Lato', sans-serif; */
+  /* font-family:Verdana, Geneva, Tahoma, sans-serif; */
+  /* font-family: 'Poppins', sans-serif; */
+  /* font-family: 'Nunito Sans', sans-serif; */
   line-height: 1.5;
   /* text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale; */
@@ -54,7 +62,8 @@
 
 body {
   --tw-bg-opacity: 1;
-  background-color: rgb(30 41 59 / var(--tw-bg-opacity));
+  /* background-color: rgb(30 41 59 / var(--tw-bg-opacity)); */
+  background-color: white;
 }
 input {
   outline: none;
@@ -80,4 +89,8 @@ input {
 .custom-toast-content {
   /* Định dạng chiều rộng linh hoạt */
   word-wrap: break-word;
+}
+
+.text-capitalize::first-letter {
+  text-transform: uppercase;
 }

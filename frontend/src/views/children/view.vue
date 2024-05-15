@@ -1,686 +1,769 @@
 <template>
-  <!-- <div class="" v-if="item != null"> -->
   <div
-    v-if="item != null"
-    class="border border-solid border-slate-600 rounded-md mb-5"
+    v-if="item?.name"
+    class="border border-solid border-slate-300 rounded-md mb-5"
   >
-    <!-- class detail -->
-    <div class="flex justify-center mb-5">
-      <div class="px-5 py-5">
-        <!-- title -->
-        <p class="text-slate-300 text-lg text-center">
-          <span
-            class="border border-solid px-5 py-1 border-slate-600 rounded-md"
-            >Information Details Of Child</span
-          >
-        </p>
-        <div class="flex text-slate-300 mt-10">
-          <div
-            class="flex mx-5 border border-solid border-t-0 border-b-0 border-l-0 border-slate-600"
-          >
-            <div class="flex flex-col mr-5">
-              <span>Child:</span>
-              <span>Gender:</span>
-              <span>Birthday:</span>
-              <span>Address:</span>
-            </div>
-            <div class="flex flex-col mr-10">
-              <span>{{ item.name }}</span>
-              <span>{{ item.gender ? "Nam" : "Nữ" }}</span>
-              <span>{{ item.birthday }}</span>
-              <span>{{ item.address }}</span>
-              <p @click="editChild = true" class="cursor-pointer mt-5">
-                <span
-                  class="border border-solid px-4 py-1 rounded-md border-yellow-600 text-slate-600 hover:border-yellow-300 hover:text-slate-300"
-                  >Edit</span
-                >
+    <div class="flex justify-between items-start">
+      <p
+        class="text-lg border border-solid border-t-0 border-l-0 border-slate-300 px-4 py-1.5"
+        style="border-radius: 0% 0% 5px 0%"
+      >
+        Chi tiết thông tin trẻ
+      </p>
+      <div class="flex justify-end mx-5 my-5 text-slate-900">
+        <div
+          class="border border-solid px-4 py-2 cursor-pointer flex items-center"
+          :class="
+            actionPage == 6
+              ? 'border border-solid bg-green-500 border-slate-300 border-r-0 text-white'
+              : 'border-slate-300 text-slate-900 hover:bg-gray-200 hover:border-slate-300'
+          "
+          @click="actionPage = 6"
+        >
+          Thông tin
+        </div>
+        <div
+          class="border border-solid px-4 py-1 cursor-pointer flex items-center"
+          :class="
+            actionPage == 1
+              ? 'border-2 border-solid bg-green-500 border-green-500 border-r-0 border-l-0 text-white'
+              : 'border-slate-300 text-slate-900 hover:bg-gray-200 hover:border-slate-300 border-l-0'
+          "
+          @click="actionPage = 1"
+        >
+          Lớp
+        </div>
+        <div
+          class="border border-solid px-4 py-1 cursor-pointer flex items-center"
+          :class="
+            actionPage == 2
+              ? 'border-2 border-solid bg-green-500 border-green-500 border-r-0 border-l-0 text-white'
+              : 'border-slate-300 text-slate-900 hover:bg-gray-200 hover:border-slate-300  border-l-0'
+          "
+          @click="actionPage = 2"
+        >
+          Điểm danh
+        </div>
+        <div
+          class="border border-solid px-4 py-1 cursor-pointer flex items-center"
+          :class="
+            actionPage == 3
+              ? 'border-2 border-solid bg-green-500 border-green-500 border-r-0 border-l-0 text-white'
+              : 'border-slate-300 text-slate-900 hover:bg-gray-200 hover:border-slate-300  border-l-0'
+          "
+          @click="actionPage = 3"
+        >
+          Chỉ số phát triển
+        </div>
+        <div
+          class="border border-solid px-4 py-1 cursor-pointer flex items-center"
+          :class="
+            actionPage == 4
+              ? 'border-2 border-solid bg-green-500 border-green-500 border-r-0 border-l-0 text-white'
+              : 'border-slate-300 text-slate-900 hover:bg-gray-200 hover:border-slate-300  border-l-0'
+          "
+          @click="actionPage = 4"
+        >
+          Phiếu ăn
+        </div>
+        <div
+          class="border border-solid px-4 py-1 cursor-pointer flex items-center"
+          :class="
+            actionPage == 5
+              ? 'border-2 border-solid bg-green-500 border-green-500 text-white border-r-0 border-l-0'
+              : 'border-slate-300 text-slate-900 hover:bg-gray-200 hover:border-slate-300 border-l-0 hover:border-l-0'
+          "
+          @click="actionPage = 5"
+        >
+          Học phí
+        </div>
+      </div>
+    </div>
+    <div
+      v-if="actionPage != 1"
+      class="border border-solid border-slate-300 border-b-0"
+    ></div>
+    <div
+      v-if="actionPage == 1"
+      class="border-0 border-solid border-slate-600 border-b-0"
+    ></div>
+    <div v-if="actionPage == 6 && item?.name" class="flex justify-start mb-5">
+      <div class="px-5">
+        <div class="flex text-slate-800 mt-5">
+          <!-- class info -->
+          <div class="flex mr-5 text-slate-600">
+            <div class="flex-col space-y-2">
+              <p class="whitespace-nowrap">
+                Tên trẻ:
+                <span class="text-slate-900 ml-2 whitespace-nowrap">{{
+                  item.name
+                    .split(" ")
+                    .map((i) => i.charAt(0).toUpperCase() + i.slice(1))
+                    .join(" ")
+                }}</span>
+              </p>
+              <p class="whitespace-nowrap">
+                Giới tính:
+                <span class="text-slate-900 ml-2 whitespace-nowrap capitalize">{{
+                  (item.gender == "true" ? "nam" : "nữ")
+                }}</span>
+              </p>
+              <p class="whitespace-nowrap">
+                Trạng thái:
+                <span class="text-slate-900 ml-2 whitespace-nowrap">{{
+                  (item.statusChild).charAt(0).toLowerCase() + (item.statusChild).slice(1)
+                }}</span>
+              </p>
+              <p class="whitespace-nowrap">
+                Học tại:
+                <span class="text-slate-900 ml-2 whitespace-nowrap capitalize">{{
+                  item.childcareCenter[item.childcareCenter.length - 1].name
+                    .charAt(0)
+                    .toUpperCase() +
+                  item.childcareCenter[
+                    item.childcareCenter.length - 1
+                  ].name.slice(1)
+                }}</span>
               </p>
             </div>
-          </div>
-          <div class="flex flex-1">
-            <div class="flex flex-col mx-5">
-              <span>Parent:</span>
-              <span>Gender:</span>
-              <span>Phone:</span>
-              <span>Email:</span>
-              <span>Relationship:</span>
-              <span>Address:</span>
-            </div>
-            <div v-if="item.parentDetails.length != 0" class="flex flex-col">
-              <span>{{ item.parentDetails[0].name }}</span>
-              <span>{{
-                item.parentDetails[0].gender ? "Nam" : "Nữ"
-              }}</span>
-              <span>{{ item.parentDetails[0].phone }}</span>
-              <span>{{ item.parentDetails[0].email }}</span>
-              <span>{{ item.parentDetails[0].relationship }}</span>
-              <span>{{ item.parentDetails[0].address }}</span>
-              <div class="flex">
-                <p @click="addParent = true" class="cursor-pointer mt-5 mr-5">
-                  <span
-                    class="border border-solid px-4 py-1 rounded-md border-green-600 text-slate-600 hover:border-green-300 hover:text-slate-300"
-                    >Add</span
-                  >
-                </p>
-                <p class="cursor-pointer mt-5">
-                  <span
-                    class="border border-solid px-4 py-1 rounded-md border-yellow-600 text-slate-600 hover:border-yellow-300 hover:text-slate-300"
-                    >Edit</span
-                  >
-                </p>
-              </div>
+            <div class="flex-col ml-10 space-y-2">
+              <p class="whitespace-nowrap">
+                Ngày sinh:
+                <span class="text-slate-900 ml-2 whitespace-nowrap">{{
+                  formatDate(item.birthday)
+                }}</span>
+              </p>
+              <p class="whitespace-nowrap">
+                Địa chỉ thường trú:
+                <span class="text-slate-900 ml-2 whitespace-normal">{{
+                  item.address
+                    .split(" ")
+                    .map((i) => i.charAt(0).toUpperCase() + i.slice(1))
+                    .join(" ")
+                }}</span>
+              </p>
+              <p class="whitespace-nowrap">
+                Ngày nhập học:
+                <span class="text-slate-900 ml-2 whitespace-nowrap">{{
+                  formatDate(item.startSchooling)
+                }}</span>
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- class -->
-
-  <div class="border border-solid border-slate-600 rounded-md mb-5">
-    <div class="mx-5 my-5 flex items-center justify-between">
-      <div class="flex items-center">
-        <label for="" class="text-slate-300 mr-5">Class: </label>
-        <FSelect class="w-32" :options="classes" v-model="classValue" />
-      </div>
-      <p v-if="classO.length != 0" class="text-slate-300">
-        Grade: {{ classO[0].grade.name }}
-      </p>
-      <p v-if="classO.length != 0" class="text-slate-300">
-        School Year: {{ classO[0].schoolYear.name }}
-      </p>
-    </div>
-    <!-- list of children or cdi or receipt -->
-    <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
-    <div class="flex justify-end mx-5 mb-5 text-slate-600">
-      <div
-        class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
-        :class="
-          actionPage == 6 ? 'border-2 border-slate-300 text-slate-300' : ''
-        "
-        @click="actionPage = 6"
+    <!-- <div class="flex justify-end" v-if="actionPage == 6">
+      <button
+        class="h-10 mt-5 mr-5 mb-5 border-2 border-solid border-blue-500 bg-blue-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+        @click="activeAddParent = true"
       >
-        Parent
-      </div>
-      <div
-        class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
-        :class="
-          actionPage == 1 ? 'border-2 border-slate-300 text-slate-300' : ''
-        "
-        @click="actionPage = 1"
+        Thêm phụ huynh
+      </button>
+      <button
+        class="h-10 mt-5 mr-5 mb-5 border-2 border-solid border-purple-500 bg-purple-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+        @click="activeAddAllergies = true"
       >
-        Teacher
-      </div>
-      <div
-        class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
-        :class="
-          actionPage == 2
-            ? 'border-2 border-slate-300 text-slate-300'
-            : 'border-l-0 border-r-0'
-        "
-        @click="actionPage = 2"
-      >
-        CDI
-      </div>
-      <div
-        class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
-        :class="
-          actionPage == 3 ? 'border-2 border-slate-300 text-slate-300' : ''
-        "
-        @click="actionPage = 3"
-      >
-        Tuition
-      </div>
-      <div
-        class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
-        :class="
-          actionPage == 4 ? 'border-2 border-slate-300 text-slate-300' : ''
-        "
-        @click="actionPage = 4"
-      >
-        Meal
-      </div>
-      <div
-        class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
-        :class="
-          actionPage == 5 ? 'border-2 border-slate-300 text-slate-300' : ''
-        "
-        @click="actionPage = 5"
-      >
-        Attendance
-      </div>
-    </div>
-    <!-- <div class="border border-solid my-5 border-slate-600 border-b-0"></div> -->
+        Thêm dị ứng
+      </button>
+    </div> -->
+    <FormAddParent
+      :title="`Thêm phụ huynh mới`"
+      v-if="activeAddParent"
+      :item="parentAdd"
+      @cancel="
+        () => {
+          activeAddParent = false;
+          parentAdd = {
+            name: '',
+            gender: 'true',
+            phone: '',
+            email: '',
+            address: '',
+            relationship: 'bố',
+            province: '',
+            district: '',
+            ward: '',
+          };
+        }
+      "
+      @submit="addParent"
+    />
+    <FormAddParent
+      :title="`Sửa thông tin phụ huynh`"
+      v-if="activeEditParent"
+      :item="parentEdit"
+      :buttonName="`Edit`"
+      @cancel="
+        () => {
+          activeEditParent = false;
+        }
+      "
+      @submit="editParent()"
+    />
+    <FormAllergies
+      :title="`Thêm dị ứng cho trẻ`"
+      v-if="activeAddAllergies"
+      :item="parentEdit"
+      @cancel="
+        () => {
+          activeAddAllergies = false;
+        }
+      "
+      @submit="(value) => addAllergies(value)"
+    />
+    <FormEditAllergen
+      :title="`Cập nhật dị ứng`"
+      v-if="activeEditAllergies"
+      :item="allergenEdit"
+      @cancel="
+        () => {
+          activeEditAllergies = false;
+        }
+      "
+      @submit="(value) => editAllergies()"
+    />
+    <div v-if="actionPage == 6" class="mb-5"></div>
+    <!-- children -->
     <Table
+      :items="classList"
+      :fields="['Tên lớp', 'Khối học', 'Năm học']"
+      :labels="['name', 'grade_name', 'schoolYear_name']"
+      :showAction="[role == 'Teacher' ? false : true, false, false]"
+      :activeSTT="true"
       v-if="actionPage == 1"
-      :items="assignment"
-      :fields="['teacher', 'phone', 'email', 'address']"
-      :labels="['name', 'phone', 'email', 'address']"
+      :show-checkbox="false"
+      :action-list="['ClassRoom.view']"
+      :borderB="false"
     />
-    <Table
+    <CDIChildren
+      v-if="actionPage == 3"
+      :cdiList="item.cDI"
+      :classList="classList"
+    />
+    <MealTicketChildren
+      v-if="actionPage == 4"
+      :mealTicketList="item.mealTicket"
+      :classList="classList"
+    />
+    <AttendanceChildren
       v-if="actionPage == 2"
-      :items="cdi"
-      :fields="['month', 'height (cm)', 'weight (kg)', 'health', 'roses']"
-      :labels="['month', 'height', 'weight', 'health', 'roses']"
+      :attendanceList="item.attendance"
+      :classList="classList"
     />
-    <Table
-      v-if="actionPage == 3"
-      :items="collectionRates"
-      :fields="['tuition', 'money']"
-      :labels="['tuition', 'money']"
-    />
-    <div
-      v-if="actionPage == 3"
-      class="flex justify-between mx-2 my-5 text-slate-300"
-    >
-      <span><span class="text-blue-500">Total:</span> {{ formatMoney(receipt[0].total) }}</span>
-      <span><span class="text-blue-500">Start Date:</span> {{ formatDate1(receipt[0].dateStart) }}</span>
-      <span><span class="text-blue-500">End Date:</span> {{ formatDate1(receipt[0].dateEnd) }}</span>
-      <span><span class="text-blue-500">Make Date:</span> {{ receipt[0].datePerForm }}</span>
-      <span><span class="text-blue-500">Status:</span> {{ receipt[0].status ? "Paid" : "Pay" }}</span>
-    </div>
-    <div
+    <ReceiptChildren
       v-if="actionPage == 5"
-      class="border border-solid my-5 border-slate-600 border-b-0"
-    ></div>
-    <div v-if="actionPage == 5" class="flex mb-5 mx-5">
-      <input
-        type="date"
-        v-model="date"
-        class="w-40 bg-inherit flex items-center border border-solid border-slate-600 rounded-md px-2 text-slate-300 focus:border-slate-300"
-      />
-      <FSelect
-        class="w-48 mx-5"
-        :options="[
-          { _id: true, name: 'present' },
-          { _id: false, name: 'absent' },
-        ]"
-        :modelValue="`Filter present`"
-        v-model="filterPresent"
-      />
+      :receiptList="item.receipt"
+      :classList="classList"
+    />
+  </div>
+  <div
+    class="border border-solid border-slate-300 rounded-md mb-5"
+    v-if="actionPage == 6"
+  >
+    <div class="flex justify-between items-start">
+      <p
+        class="text-lg border border-solid border-t-0 border-l-0 border-slate-300 px-4 py-1.5"
+        style="border-radius: 0% 0% 5px 0%"
+      >
+        Thông tin phụ huynh
+      </p>
+      <button
+        class="h-10 mt-5 mr-5 mb-5 border-2 border-solid border-blue-500 bg-blue-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+        @click="activeAddParent = true"
+      >
+        Thêm phụ huynh
+      </button>
     </div>
     <Table
-      v-if="actionPage == 5"
-      :items="attendance"
-      :fields="['Date', 'Time', 'Present', 'reason']"
-      :labels="['date', 'time', 'present', 'reason']"
-    />
-    <TableDelete
-      v-if="actionPage == 6"
-      :items="item.parentDetails"
+      :items="parentList"
       :fields="[
-        'Parent',
-        'gender',
+        'Tên phụ huynh',
+        'Giới tính',
+        'Số điện thoại',
+        'e-mail',
+        'Địa chỉ thường trú',
+        'Mối quan hệ',
+      ]"
+      :labels="[
+        'name',
+        'gender_format',
         'phone',
         'email',
         'address',
         'relationship',
       ]"
-      :labels="['name', 'gender', 'phone', 'email', 'address', 'relationship']"
-    />
-
-    <!-- Meal -->
-    <div
-      v-if="actionPage == 4"
-      class="border border-solid my-5 border-slate-600 border-b-0"
-    ></div>
-    <div v-if="actionPage == 4" class="flex mb-5 mx-5">
-      <label for="" class="flex items-center text-slate-300 mr-2">Date:</label>
-      <input
-        type="date"
-        v-model="dateMeal"
-        class="w-40 bg-inherit flex items-center border border-solid border-slate-600 rounded-md px-2 text-slate-300 focus:border-slate-300"
-      />
-      <label for="" class="flex items-center text-slate-300 ml-4"
-        >Start time:</label
-      >
-      <input
-        type="time"
-        v-model="startTime"
-        class="w-40 mx-5 flex items-center bg-inherit border border-solid border-slate-600 rounded-md px-2 text-slate-300 focus:border-slate-300"
-      />
-      <label for="" class="flex items-center text-slate-300 mr-4"
-        >End time:</label
-      >
-      <input
-        type="time"
-        v-model="endTime"
-        class="w-40 bg-inherit flex items-center border border-solid border-slate-600 rounded-md px-2 text-slate-300 focus:border-slate-300"
-      />
-      <FSelect
-        class="w-48 mx-5"
-        :options="[
-          { _id: true, name: 'like' },
-          { _id: false, name: 'allergy' },
-        ]"
-        :modelValue="`Filter`"
-        v-model="filterEvaluate"
-      />
-    </div>
-    <TableEvaluateNoneDelete
-      v-if="actionPage == 4"
-      :items="mealTicket"
-      :fields="['Date', 'Time', 'dish', 'like', 'allergy', 'note']"
-      :labels="[]"
-      :actionList="['MealTicket.view']"
+      :wrap-list="[false, false, false, false, true, false]"
+      :showAction="[false, true, true]"
+      :activeSTT="true"
+      v-if="actionPage == 6"
+      @delete="(value) => remove(value)"
+      :borderB="false"
+      @edit="
+        async (value) => {
+          parentEdit = await http_getOne(ParentDetails, value);
+          const temp = parentEdit.address.split(', ');
+          parentEdit.province = temp[3];
+          parentEdit.district = temp[2];
+          parentEdit.ward = temp[1];
+          parentEdit.address = temp[0];
+          activeEditParent = true;
+        }
+      "
     />
   </div>
+  <div
+    class="border border-solid border-slate-300 rounded-md mb-5"
+    v-if="actionPage == 6"
+  >
+    <div class="flex justify-between items-start">
+      <p
+        class="text-lg border border-solid border-t-0 border-l-0 border-slate-300 px-4 py-1.5"
+        style="border-radius: 0% 0% 5px 0%"
+      >
+        Thông tin dị ứng
+      </p>
+      <button
+        class="h-10 mt-5 mr-5 mb-5 border-2 border-solid border-purple-500 bg-purple-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+        @click="activeAddAllergies = true"
+      >
+        Thêm dị ứng
+      </button>
+    </div>
+    <Table
+      :items="allergiesList"
+      :fields="[
+        'Tên chất gây dị ứng',
+        'Mô tả',
+        'Mức độ',
+        'Phản ứng',
+        'Giải pháp',
+        'Ghi chú',
+      ]"
+      :labels="[
+        'allergenName',
+        'allergenDescription',
+        'severity',
+        'reactionType',
+        'treatment',
+        'noteValue',
+      ]"
+      :activeSTT="true"
+      :wrap-list="[false, true, false, true, true, true]"
+      :showAction="[false, true, true]"
+      :borderB="false"
+      v-if="actionPage == 6"
+      @delete="(value) => removeAllergies(value)"
+      @edit="
+        async (value) => {
+          allergenEdit = await http_getAll(Allergies);
+          allergenEdit = allergenEdit.filter((i) => i._id == value);
+          allergenEdit = allergenEdit.map((i) => ({
+            ...i,
+            name: i.allergen.name,
+            description: i.allergen.description,
+          }));
+          allergenEdit = allergenEdit[0];
 
-  <FormEditChildren
-    v-if="editChild"
-    :title="`Edit Child Information`"
-    :item="item"
-    @cancel="(value) => (editChild = value)"
-    @submit="update()"
-  />
-  <FormAddParent
-    v-if="addParent"
-    :title="`Add parent for child`"
-    :item="parentValue"
-    @cancel="(value) => (addParent = value)"
-    @submit="create()"
-  />
-  <!-- </div> -->
+          activeEditAllergies = true;
+        }
+      "
+    />
+  </div>
 </template>
 
-<script>
-import BAdd from "../../components/buttons/Add.vue";
-import BEdit from "../../components/buttons/Edit.vue";
-import BDelete from "../../components/buttons/Delete.vue";
-import BCancel from "../../components/buttons/Cancel.vue";
-import FSelect from "../../components/forms/Select.vue";
-import FSearch from "../../components/forms/Search.vue";
-import Table from "../../components/TableNoneAction.vue";
-import TableDelete from "../../components/TableDelete.vue";
-import TableEvaluateNoneDelete from "../../components/TableEvaluateNoneDelete.vue";
-import Pagination from "../../components/Pagination.vue";
-import FormOne from "../../components/forms/FormOne.vue";
-import FormEditChildren from "../../components/forms/FormEditChildren.vue";
-import FormAddParent from "../../components/forms/FormAddParent.vue";
-import Classes from "../../services/classes.service";
-import Children from "../../services/children.service";
-import Month from "../../services/month.service";
-import MealTicket from "../../services/mealTicket.service";
-import ParentDetails from "../../services/parentDetails.service";
-import CollectionRates from "../../services/collectionRates.service";
-import ASuccess from "../../components/alerts/Success.vue";
-import Swal from "sweetalert2";
-import { FormatMoney } from "format-money-js";
+<script setup>
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  Allergies,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  defineProps,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // Swal
+  Swal,
+  // components
+  Navbar,
+  Sidebar,
+  Footer,
+  Login,
+  BAdd,
+  BEdit,
+  BDelete,
+  BCancel,
+  FSelect,
+  FSearch,
+  Table,
+  Pagination,
+  FormOne,
+  ASuccess,
+  FormChildren,
+  ChildrenList,
+  CDIList,
+  MealTicketList,
+  AttendanceList,
+  ReceiptList,
+  FormAddParent,
+  FormAllergies,
+  FormEditAllergen,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  alert_input_1,
+  alert_remove,
+  // https
+  http_getAll,
+  http_getOne,
+  http_deleteOne,
+  http_create,
+  http_update,
+  // format money
+  formatCurrencyVND,
+  convertToWords,
+  // format date-time
+  formatDate,
+  formatDateTime,
+  formatDateTime_2,
+} from "../../assets/js/imports";
+//
+import {
+  items,
+  items_cp,
+  item,
+  background,
+  searchText,
+  searchWith,
+  searchOption,
+  entryValue,
+  typing_entry,
+  option_entry,
+  mode,
+  option_mode,
+  numberOfPages,
+  totalRow,
+  startRow,
+  endRow,
+  currentPage,
+  activeAdd,
+  activeEdit,
+  deleteValue,
+  setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  ageList,
+  ageValue,
+  filter_age,
+  genderList,
+  genderValue,
+  filter_gender,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
+  reset,
+} from "../../components/common/index.js";
 
-export default {
-  components: {
-    BAdd,
-    BEdit,
-    BDelete,
-    BCancel,
-    FSelect,
-    FSearch,
-    Table,
-    Pagination,
-    FormOne,
-    ASuccess,
-    FormEditChildren,
-    TableEvaluateNoneDelete,
-    FormAddParent,
-    TableDelete,
+import jsPDF from "jspdf";
+import CDIChildren from "./cdi.vue";
+import AttendanceChildren from "./attendance.vue";
+import MealTicketChildren from "./mealTicket.vue";
+import ReceiptChildren from "./receipt.vue";
+
+const actionPage = ref(6);
+const actionList = ref([1, 2, 3, 4, 5, 6]);
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
   },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      // data
-      items: [],
-      item: null,
-      teacher: [],
-      classes: [],
-      classO: [],
-      assignment: [],
-      cdi: [],
-      classValue: "",
-      actionPage: 1,
-      month: [],
-      grade: "",
-      schoolYear: "",
-      collectionRates: [],
-      receipt: [],
-      mealTicket: [],
-      attendance: [],
-      date: this.setDate(true),
-      filterPresent: null,
-      editChild: false,
-      background: "rgb(51 65 85 / var(--tw-bg-opacity))",
-      dateMeal: this.setDate(true),
-      startTime: null,
-      endTime: null,
-      filterEvaluate: null,
-      addParent: false,
-      parentValue: {
-        child: this.id,
-        name: "",
-        gender: true,
-        phone: "",
-        email: "",
-        address: "",
-        relationship: "bố",
-      },
+});
+
+const role = ref("");
+role.value = sessionStorage.getItem("role");
+
+const parentList = ref([]);
+const classList = ref([]);
+const receiptList = ref([]);
+const activeAddParent = ref(false);
+const activeEditParent = ref(false);
+const activeAddAllergies = ref(false);
+const activeEditAllergies = ref(false);
+const parentAdd = ref({
+  name: "",
+  gender: "true",
+  phone: "",
+  email: "",
+  address: "",
+  relationship: "bố",
+  province: "",
+  district: "",
+  ward: "",
+});
+const parentEdit = ref({});
+const allergenEdit = ref({});
+const addParent = async () => {
+  parentAdd.value.child = props.id;
+  parentAdd.value.parents = item.value.parentDetails[0].parents;
+  const temp = `${parentAdd.value.address}, ${parentAdd.value.ward}, ${parentAdd.value.district}, ${parentAdd.value.province}`;
+  parentAdd.value.address = temp;
+  const result = await http_create(ParentDetails, parentAdd.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    activeAddParent.value = false;
+    parentAdd.value = {
+      name: "",
+      gender: "true",
+      phone: "",
+      email: "",
+      address: "",
+      relationship: "bố",
+      province: "",
+      district: "",
+      ward: "",
     };
-  },
-  watch: {
-    async classValue() {
-      await this.getClass();
-      this.formatCDI();
-      await this.getAllCollectionRate();
-      await this.getAllMealTicket();
-    },
-    date() {
-      this.getClass();
-    },
-    filterPresent() {
-      this.getClass();
-    },
-    dateMeal() {
-      this.getAllMealTicket();
-    },
-    startTime() {
-      this.getAllMealTicket();
-    },
-    endTime() {
-      this.getAllMealTicket();
-    },
-    filterEvaluate() {
-      this.getAllMealTicket();
-    },
-  },
-  computed: {},
-  methods: {
-    async get() {
-      try {
-        this.item = await Children.get(this.id);
-        (this.parentValue.parents = this.item.parentDetails[0].parents),
-          console.log(this.item);
-        this.classes = this.item.classes;
-        // await this.getAllMealTicket();
-      } catch (error) {}
-    },
-
-    async getAllMealTicket() {
-      try {
-        this.mealTicket = await MealTicket.getAll();
-        this.mealTicket = this.mealTicket.filter((value, index) => {
-          return value.classes._id == this.classO[0]._id;
-        });
-        this.mealTicket = this.mealTicket.filter((value, index) => {
-          let check = false;
-          for (let value1 of this.item.mealTicket) {
-            if (value._id == value1) {
-              check = true;
-              break;
-            }
-          }
-          return check == true;
-        });
-
-        this.mealTicket = this.mealTicket.map((value, index) => {
-          return {
-            _id: value._id,
-            dish: value.meal.dish,
-            date: value.meal.date,
-            meal: value.meal._id,
-            startTime: value.meal.timeStart,
-            endTime: value.meal.timeEnd,
-            evaluate: value.evaluate,
-            like: value.evaluate.like,
-            allergy: value.evaluate.allergy,
-            note: value.evaluate.note,
-          };
-        });
-
-        this.mealTicket = this.mealTicket.filter((value, index) => {
-          return value.date == this.dateMeal;
-        });
-
-        if (this.startTime != null) {
-          this.mealTicket = this.mealTicket.filter((value, index) => {
-            return value.startTime == this.startTime;
-          });
-        }
-
-        if (this.endTime != null) {
-          this.mealTicket = this.mealTicket.filter((value, index) => {
-            return value.endTime == this.endTime;
-          });
-        }
-
-        if (this.filterEvaluate != null) {
-          if (this.filterEvaluate == true) {
-            this.mealTicket = this.mealTicket.filter((value, index) => {
-              return value.like == true;
-            });
-          }
-
-          if (this.filterEvaluate == false) {
-            this.mealTicket = this.mealTicket.filter((value, index) => {
-              return value.allergy == true;
-            });
-          }
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    setDate(standard = false) {
-      let date = new Date();
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      if (standard) {
-        if (month < 10) {
-          return year + "-" + "0" + month + "-" + day;
-        }
-      }
-
-      return year + "-" + month + "-" + day;
-    },
-
-    formatDate(value) {
-      let date = new Date(value);
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      return year + "-" + month + "-" + day;
-    },
-
-    formatDate1(value) {
-      let date = new Date(value);
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      return day + "-" + month + "-" + year;
-    },
-
-    async getClass() {
-      try {
-        this.classO = await Classes.get(this.classValue);
-        this.assignment = this.classO[0].assignment.map((value, index) => {
-          return {
-            _id: value.teacher._id,
-            name: value.teacher.name,
-            phone: value.teacher.phone,
-            email: value.teacher.email,
-            address: value.teacher.address,
-          };
-        });
-        this.grade = this.classO[0].grade._id;
-        this.schoolYear = this.classO[0].schoolYear._id;
-        this.cdi = this.classO[0].cdi;
-
-        this.cdi = this.cdi.filter((value, index) => {
-          return value.child._id == this.id;
-        });
-
-        for (let value of this.cdi) {
-          await this.getMonth(value.month);
-        }
-
-        this.receipt = this.classO[0].receipt;
-        this.receipt = this.receipt.filter((value, index) => {
-          return value.child == this.id;
-        });
-
-        this.attendance = this.classO[0].attendance;
-        this.attendance = this.attendance.filter((value, index) => {
-          return value.child._id == this.id;
-        });
-        this.attendance = this.attendance.filter((value, index) => {
-          return value.date == this.formatDate(this.date);
-        });
-        if (this.filterPresent != null) {
-          this.attendance = this.attendance.filter((value, index) => {
-            return value.present == this.filterPresent;
-          });
-        }
-        this.attendance = this.attendance.map((value, index) => {
-          if (value.time) {
-            var time = "Start time";
-          }
-          if (!value.time) {
-            var time = "End time";
-          }
-          if (value.present) {
-            var present = "present";
-          }
-          if (!value.present) {
-            var present = "absent";
-          }
-          return {
-            _id: value._id,
-            time: time,
-            present: present,
-            reason: value.reason,
-            date: value.date,
-          };
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    formatMoney(money) {
-      const fm = new FormatMoney({
-        decimals: 0,
-        append: true,
-      });
-
-      const temp = fm.from(money, { symbol: "vnđ" });
-
-      return temp;
-    },
-
-    formatCDI() {
-      this.cdi = this.cdi.map((value, index) => {
-        console.log(index + "c");
-        return {
-          _id: value._id,
-          height: value.height,
-          weight: value.weight,
-          health: value.health,
-          roses: value.roses,
-          month: this.month[index].name,
-        };
-      });
-    },
-
-    async getMonth(id) {
-      try {
-        const month = await Month.get(id);
-        this.month.push(month);
-      } catch (error) {}
-    },
-
-    async getAllCollectionRate() {
-      try {
-        this.collectionRates = await CollectionRates.getAll();
-        this.collectionRates = this.collectionRates.filter((value, index) => {
-          return (
-            value.grade._id == this.grade &&
-            value.schoolYear._id == this.schoolYear
-          );
-        });
-        this.collectionRates = this.collectionRates.map((value, index) => {
-          return {
-            _id: value._id,
-            tuition: value.tuitionFees.name,
-            money: this.formatMoney(value.money),
-          };
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    format() {},
-
-    async refresh() {
-      await this.get();
-    },
-
-    async update() {
-      console.log("starting");
-      try {
-        const child = await Children.update(this.id, {
-          name: this.item.name,
-          gender: this.item.gender,
-          birthday: this.item.birthday,
-          address: this.item.address,
-        });
-
-        if (!child.error) {
-          Swal.fire({
-            background: this.background,
-            color: "white",
-            text: "Successfull edit",
-            icon: "success",
-            timer: 2000,
-          });
-          this.editChild = false;
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    async create() {
-      try {
-        const check = await ParentDetails.create1(this.parentValue);
-        if (check.error == false) {
-          Swal.fire({
-            background: this.background,
-            color: "white",
-            text: "Successfull add",
-            icon: "success",
-            timer: 2000,
-          });
-          this.addParent = false;
-          await this.refresh();
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-  },
-  async created() {
-    await this.refresh();
-  },
+    refresh();
+  }
 };
+
+const addAllergies = async (value) => {
+  for (let v of value) {
+    const result = await http_create(Allergies, {
+      ...v,
+      child: props.id,
+    });
+    if (result.error) run_alert(alert_error(result.message));
+    if (!result.error) {
+      run_alert(alert_success(result.message));
+    }
+  }
+  activeAddAllergies.value = false;
+  refresh();
+};
+
+const editAllergies = async () => {
+  const result = await http_update(
+    Allergies,
+    allergenEdit.value._id,
+    allergenEdit.value
+  );
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    activeEditAllergies.value = false;
+    await refresh();
+  }
+};
+
+const removeAllergies = async (item) => {
+  const deleteList = allergiesList.value.filter((item) => item.checked);
+  if (deleteList.length != 0) {
+    const isRemove = await alert_remove(
+      deleteList,
+      ["Chất dị ứng", "Mô tả"],
+      ["allergenName", "allergenDescription"],
+      "70%"
+    );
+    deleteList.forEach(async (item) => {
+      if (isRemove) {
+        const result = await http_deleteOne(Allergies, item._id);
+        if (result.error) run_alert(alert_warning(result.message));
+      }
+    });
+    if (isRemove) {
+      run_alert(alert_success("Đã xoá thành công."));
+      refresh();
+    }
+  }
+  if (deleteList.length == 0) {
+    const isRemove = await alert_remove(
+      [item],
+      ["Chất dị ứng", "Mô tả"],
+      ["allergenName", "allergenDescription"],
+      "70%"
+    );
+    if (isRemove) {
+      const result = await http_deleteOne(Allergies, item._id);
+      if (result.error) run_alert(alert_warning(result.message));
+      if (!result.error) {
+        run_alert(alert_success(result.message));
+        refresh();
+      }
+    }
+  }
+};
+
+const editParent = async () => {
+  const temp = `${parentEdit.value.address}, ${parentEdit.value.ward}, ${parentEdit.value.district}, ${parentEdit.value.province}`;
+  parentEdit.value.address = temp;
+  const result = await http_update(
+    ParentDetails,
+    parentEdit.value._id,
+    parentEdit.value
+  );
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    activeEditParent.value = false;
+    await refresh();
+  }
+};
+
+const remove = async (item) => {
+  const deleteList = items.value.filter((item) => item.checked);
+  if (deleteList.length != 0) {
+    const isRemove = await alert_remove(
+      deleteList,
+      ["Parent", "gender", "phone", "e-mail", "address", "relationship"],
+      ["name", "gender_format", "phone", "email", "address", "relationship"],
+      "70%"
+    );
+    deleteList.forEach(async (item) => {
+      if (isRemove) {
+        const result = await http_deleteOne(ParentDetails, item._id);
+        if (result.error) run_alert(alert_warning(result.message));
+      }
+    });
+    if (isRemove) {
+      run_alert(alert_success("Successfully deleted."));
+      refresh();
+    }
+  }
+  if (deleteList.length == 0) {
+    const isRemove = await alert_remove(
+      [item],
+      ["Parent", "gender", "phone", "e-mail", "address", "relationship"],
+      ["name", "gender_format", "phone", "email", "address", "relationship"],
+      "70%"
+    );
+    if (isRemove) {
+      const result = await http_deleteOne(ParentDetails, item._id);
+      if (result.error) run_alert(alert_warning(result.message));
+      if (!result.error) {
+        run_alert(alert_success(result.message));
+        refresh();
+      }
+    }
+  }
+};
+
+const exportToPDF = () => {
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  pdf.setFontSize(16);
+  pdf.text("Phiếu Thu Học Phí", pageWidth / 2, 20, { align: "center" });
+  pdf.text(`Ngày: ${new Date().toLocaleDateString()}`, 20, 40);
+  pdf.text("Số Tiền: $100", 20, 50);
+  pdf.text("Họ Tên Học Sinh: John Doe", 20, 60);
+
+  // ... Thêm thêm văn bản cần thiết
+
+  pdf.save("phieuthu.pdf");
+};
+
+const allergiesList = ref([]);
+
+const refresh = async () => {
+  if (props.id) {
+    allergiesList.value = await http_getAll(Allergies);
+    console.log(allergiesList.value);
+    allergiesList.value = allergiesList.value.filter(
+      (i) => i.child._id == props.id
+    );
+    allergiesList.value = allergiesList.value.map((i) => ({
+      ...i,
+      noteValue: i.note,
+      allergenName: i.allergen.name,
+      allergenDescription: i.allergen.description,
+    }));
+    console.log("xxx", allergiesList.value);
+    item.value = await http_getOne(Children, props.id);
+    parentList.value = item.value.parentDetails;
+    console.log(parentList.value);
+    parentList.value = parentList.value.map((item) => ({
+      ...item,
+      gender_format: item.gender == "true" ? "nam" : "nữ",
+    }));
+    classList.value = item.value.classes;
+    classList.value = classList.value.map((item) => ({
+      ...item,
+      grade_name: item.grade.name,
+      schoolYear_name: item.schoolYear.name,
+    }));
+  }
+};
+
+onBeforeMount(async () => {
+  reset();
+  await refresh();
+});
 </script>

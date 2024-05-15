@@ -6,20 +6,21 @@
     v-slot="{ errors }"
   >
     <div
-      class="fixed top-0 right-0 w-screen h-screen z-50 flex overflow-auto items-center justify-center"
+      class="fixed top-0 right-0 w-screen h-screen z-50 flex items-center justify-center"
     >
-      <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
+      <div class="bg-slate-900 h-screen opacity-70 flex-1 relative"></div>
       <div
-        class="bg-slate-800 mx-5 w-6/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
+        class="bg-white mx-5 w-6/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
         style="min-height: 100px"
       >
         <div
           class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
         >
-          <span>{{ title }}</span>
+          <span class="text-slate-900">{{ title }}</span>
           <span
             @click="cancel"
-            class="material-symbols-outlined cursor-pointer text-slate-600 hover:text-slate-300"
+            class="material-symbols-outlined cursor-pointer text-slate-900 hover:text-red-500"
+            title="Đóng"
           >
             close
           </span>
@@ -27,7 +28,7 @@
         <div class="flex flex-col my-5 mx-3">
           <div class="flex flex-row mt-5">
             <div
-              class="w-2/12 mr-4 flex h-full flex-col items-start justify-center"
+              class="w-4/12 mr-4 flex h-full flex-col items-start justify-center"
             >
               <div
                 v-for="(step, index) in stepList"
@@ -39,93 +40,103 @@
                   class="h-10 w-10 mr-3 rounded-md flex items-center justify-center"
                   :class="[
                     step.id == activeStep
-                      ? 'border border-solid border-slate-300 text-slate-300'
-                      : 'border border-solid border-slate-600 text-slate-600',
+                      ? 'border border-solid border-green-500 text-white bg-green-500'
+                      : 'border border-solid border-slate-900 text-slate-900 hover:bg-gray-200 hover:border-gray-200',
                   ]"
                   >{{ step.id }}</span
                 >
                 <span
-                  class=""
+                  class="whitespace-nowrap"
                   :class="[
-                    step.id == activeStep ? 'text-slate-300' : 'text-slate-600',
+                    step.id == activeStep ? 'text-slate-900' : 'text-slate-900',
                   ]"
                   >{{ step.name }}</span
                 >
               </div>
             </div>
             <div
-              class="border border-solid border-t-0 border-l-0 border-b-0 border-slate-600 mx-4"
+              class="border border-solid border-t-0 border-l-0 border-b-0 border-slate-300 mx-4"
             ></div>
             <!--! page 1 -->
-            <div class="w-10/12" v-show="activeStep == 1">
-              <div class="flex">
-                <!-- name -->
-                <div class="flex w-6/12 flex-col text-slate-300">
-                  <label for="name" class="-mt-2.5 flex items-center"
-                    >Name<span class="text-red-500 text-3xl ml-0.5 relative"
-                      >*</span
-                    ></label
-                  >
-                  <Field
-                    v-model="item.p_name"
-                    class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                    name="name"
-                    type="text"
-                    placeholder=""
-                    :class="
-                      !item.p_name ? 'border-red-500' : 'border-slate-600'
-                    "
-                    autocomplete="off"
+            <div
+              class="w-9/12 overflow-auto pr-3 py-3"
+              style="max-height: calc(100vh - 250px)"
+              v-show="activeStep == 1"
+            >
+              <!-- name -->
+              <div class="flex flex-col text-slate-900">
+                <label for="name" class="-mt-2.5 flex items-center"
+                  >Họ và tên<span class="text-red-500 text-3xl ml-0.5 relative"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.p_name"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
+                  name="name"
+                  type="text"
+                  placeholder=""
+                  :class="errors.name ? 'border-red-500' : 'border-slate-300'"
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="name"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- gender -->
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Giới tính<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <div class="flex items-center">
+                  <input
+                    type="radio"
+                    id="male"
+                    name="gender"
+                    value="true"
+                    v-model="item.p_gender"
+                    class="mr-2"
+                    :checked="item.p_gender == 'true'"
                   />
-                  <ErrorMessage
-                    name="name"
-                    class="text-red-500 mt-2 ml-0.5 text-sm"
+                  <label for="male" class="mr-4 mt-1">Nam</label>
+
+                  <input
+                    type="radio"
+                    id="female"
+                    name="gender"
+                    value="false"
+                    v-model="item.p_gender"
+                    class="mr-2"
+                    :checked="item.p_gender == 'false'"
                   />
+                  <label for="female" class="mt-1">Nữ</label>
                 </div>
-                <!-- gender -->
-                <div class="flex w-6/12 flex-col text-slate-300 ml-3">
-                  <label for="" class="-mt-2.5 flex items-center"
-                    >Gender<span class="text-red-500 text-3xl relative ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <FSelect
-                    class=""
-                    @update:modelValue="(value) => (item.p_gender = value)"
-                    @update="(value) => (runGet = value)"
-                    :options="[
-                      {
-                        _id: 'true',
-                        name: 'nam',
-                      },
-                      {
-                        _id: 'false',
-                        name: 'nữ',
-                      },
-                    ]"
-                    :modelValue="`nam`"
-                  />
-                </div>
+                <p
+                  v-if="!item.p_gender"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                >
+                  Vui lòng chọn giới tính.
+                </p>
               </div>
               <!-- phone -->
-              <div class="flex flex-col text-slate-300">
+              <div class="flex flex-col text-slate-900">
                 <label for="" class="mt-2.5 flex items-center"
-                  >Phone<span class="text-red-500 text-3xl relative ml-0.5"
+                  >Số điện thoại<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.p_phone"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="phone"
                   style=""
                   type="text"
                   placeholder=""
-                  :class="
-                    !item.p_phone || errors.phone
-                      ? 'border-red-500'
-                      : 'border-slate-600'
-                  "
+                  :class="errors.phone ? 'border-red-500' : 'border-slate-300'"
                   autocomplete="off"
                 />
                 <ErrorMessage
@@ -134,24 +145,20 @@
                 />
               </div>
               <!-- email -->
-              <div class="flex flex-col text-slate-300">
+              <div class="flex flex-col text-slate-900">
                 <label for="" class="mt-2.5 flex items-center"
-                  >E-mail<span class="text-red-500 text-3xl relative ml-0.5"
+                  >E-mail<span class="text-slate-900 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.p_email"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="email"
                   style=""
                   type="text"
                   placeholder=""
-                  :class="
-                    !item.p_email || errors.email
-                      ? 'border-red-500'
-                      : 'border-slate-600'
-                  "
+                  :class="errors.email ? 'border-red-500' : 'border-slate-300'"
                   autocomplete="off"
                 />
                 <ErrorMessage
@@ -160,24 +167,29 @@
                 />
               </div>
               <!-- address -->
-              <div class="flex flex-col text-slate-300">
+
+              <LocationPicker
+                :checks="checks"
+                @province-selected="(value) => (item.p_province = value)"
+                @district-selected="(value) => (item.p_district = value)"
+                @ward-selected="(value) => (item.p_ward = value)"
+              />
+              <div class="flex flex-col text-slate-900">
                 <label for="" class="mt-2.5 flex items-center"
-                  >Address<span class="text-red-500 text-3xl relative ml-0.5"
+                  >Địa chỉ thường trú<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.p_address"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="address"
-                  id="address"
+                  as="textarea"
                   style=""
-                  type="text"
                   placeholder=""
                   :class="
-                    !item.p_address || errors.address
-                      ? 'border-red-500'
-                      : 'border-slate-600'
+                    errors.address ? 'border-red-500' : 'border-slate-300'
                   "
                   autocomplete="off"
                 />
@@ -187,26 +199,39 @@
                 />
               </div>
               <!-- Relationship -->
-              <div class="flex flex-col text-slate-300">
+              <div class="flex flex-col text-slate-900">
                 <label for="" class="mt-2.5 ml-1 flex items-center"
-                  >Relationship<span
+                  >Mối quan hệ<span
                     class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <FSelect
-                  @update:modelValue="(value) => (item.p_relationship = value)"
+                  @update:modelValue="
+                    async (value) => {
+                      if (value != 'other') {
+                        item.p_relationship = value;
+                      } else {
+                        item.p_relationship = await alert_input_1(
+                          'text',
+                          '',
+                          'Nhập vào mối quan hệ với trẻ',
+                        );
+                      }
+                    }
+                  "
                   @update="(value) => (runGet = value)"
+                  :model-value="item.p_relationship"
                   :options="[
                     { _id: 'bố', name: 'bố' },
                     { _id: 'mẹ', name: 'mẹ' },
                     { _id: 'anh trai', name: 'anh trai' },
                     { _id: 'chị gái', name: 'chị gái' },
                     { _id: 'người giám hộ', name: 'người giám hộ' },
+                    { _id: 'other', name: 'khác' },
                   ]"
-                  :class="
-                    !item.p_relationship ? 'border-red-500' : 'border-slate-600'
-                  "
+                  :modeAdd="modeAdd"
+                  @click="modeAdd = false"
                 />
                 <span
                   v-if="!item.p_relationship"
@@ -216,71 +241,78 @@
               </div>
             </div>
             <!--! page 2 -->
-            <div class="w-11/12" v-show="activeStep == 2">
-              <div class="flex">
-                <!-- name -->
-                <div class="flex w-6/12 flex-col text-slate-300">
-                  <label for="name_c" class="-mt-2.5 flex items-center"
-                    >Name<span class="text-red-500 text-3xl relative ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <Field
-                    v-model="item.c_name"
-                    class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                    name="name_c"
-                    type="text"
-                    placeholder=""
-                    :class="
-                      !item.c_name ? 'border-red-500' : 'border-slate-600'
-                    "
-                    autocomplete="off"
+            <div
+              class="w-9/12 overflow-auto pr-3 py-3"
+              style="max-height: calc(100vh - 250px)"
+              v-show="activeStep == 2"
+            >
+              <!-- name -->
+              <div class="flex flex-col text-slate-900">
+                <label for="name_c" class="-mt-2.5 flex items-center"
+                  >Họ và tên<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.c_name"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
+                  name="name_c"
+                  type="text"
+                  placeholder=""
+                  :class="errors.name_c ? 'border-red-500' : 'border-slate-300'"
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="name_c"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- gender -->
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Giới tính<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <div class="flex items-center">
+                  <input
+                    type="radio"
+                    id="male2"
+                    name="gender2"
+                    value="true"
+                    v-model="item.c_gender"
+                    class="mr-2"
+                    :checked="item.c_gender == 'true'"
                   />
-                  <ErrorMessage
-                    name="name_c"
-                    class="text-red-500 mt-2 ml-0.5 text-sm"
+                  <label for="male" class="mr-4 mt-1">Nam</label>
+
+                  <input
+                    type="radio"
+                    id="female2"
+                    name="gender2"
+                    value="false"
+                    v-model="item.c_gender"
+                    class="mr-2"
+                    :checked="item.c_gender == 'false'"
                   />
-                </div>
-                <!-- gender -->
-                <div class="flex w-6/12 flex-col text-slate-300 ml-3">
-                  <label for="" class="-mt-2.5 flex items-center"
-                    >Gender<span class="text-red-500 text-3xl relative ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <FSelect
-                    class=""
-                    @update:modelValue="(value) => (item.c_gender = value)"
-                    @update="(value) => (runGet = value)"
-                    :options="[
-                      {
-                        _id: 'true',
-                        name: 'nam',
-                      },
-                      {
-                        _id: 'false',
-                        name: 'nữ',
-                      },
-                    ]"
-                    :modelValue="`nam`"
-                  />
+                  <label for="female" class="mt-1">Nữ</label>
                 </div>
               </div>
               <!-- birthday -->
-              <div class="flex flex-col text-slate-300">
+              <div class="flex flex-col text-slate-900">
                 <label for="name_c" class="mt-2.5 ml-1 flex items-center"
-                  >Birthday<span class="text-red-500 text-3xl relative ml-0.5"
+                  >Ngày sinh<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.c_birthday"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="birthday"
                   type="date"
                   placeholder=""
                   :class="
-                    !item.c_birthday ? 'border-red-500' : 'border-slate-600'
+                    errors.birthday ? 'border-red-500' : 'border-slate-300'
                   "
                   autocomplete="off"
                 />
@@ -290,24 +322,28 @@
                 />
               </div>
               <!-- address -->
-              <div class="flex flex-col text-slate-300">
+              <LocationPicker1
+                :checks="checks1"
+                @province-selected="(value) => (item.c_province = value)"
+                @district-selected="(value) => (item.c_district = value)"
+                @ward-selected="(value) => (item.c_ward = value)"
+              />
+              <div class="flex flex-col text-slate-900">
                 <label for="" class="mt-2.5 flex items-center"
-                  >Address<span class="text-red-500 text-3xl relative ml-0.5"
+                  >Địa chỉ thường trú<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.c_address"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="address_c"
-                  id="address_c"
+                  as="textarea"
                   style=""
-                  type="text"
                   placeholder=""
                   :class="
-                    !item.c_address || errors.address_c
-                      ? 'border-red-500'
-                      : 'border-slate-600'
+                    errors.address_c ? 'border-red-500' : 'border-slate-300'
                   "
                   autocomplete="off"
                 />
@@ -316,27 +352,52 @@
                   class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
+              <div class="flex flex-col text-slate-900">
+                <label for="name_c" class="mt-2.5 ml-1 flex items-center"
+                  >Ngày nhập học<span
+                    class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.startSchooling"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
+                  name="startSchooling"
+                  type="date"
+                  placeholder=""
+                  :class="
+                    errors.startSchooling
+                      ? 'border-red-500'
+                      : 'border-slate-300'
+                  "
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="startSchooling"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
             </div>
             <!-- acccount -->
             <div class="w-11/12" v-show="activeStep == 3">
               <div class="">
                 <!-- name -->
-                <div class="flex flex-col text-slate-300">
+                <div class="flex flex-col text-slate-900">
                   <label for="" class="-mt-2.5 ml-1 flex items-center"
-                    >User name<span
+                    >Tên đăng nhập<span
                       class="text-red-500 text-3xl relative ml-0.5"
                       >*</span
                     ></label
                   >
                   <Field
                     v-model="item.user_name"
-                    class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                    class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                     style=""
-                    name="userName"
+                    name="username"
                     type="text"
                     placeholder=""
                     :class="
-                      !item.user_name ? 'border-red-500' : 'border-slate-600'
+                      errors.username ? 'border-red-500' : 'border-slate-300'
                     "
                     autocomplete="off"
                   />
@@ -344,142 +405,125 @@
                     v-if="checkUser == false"
                     class="text-red-500 mt-2 ml-0.5 text-sm"
                   >
-                    This name already has a user.
+                    Tên tài khoản đã tồn tại.
                   </p>
-                  <p
-                    v-if="!item.user_name"
+                  <ErrorMessage
+                    name="username"
                     class="text-red-500 mt-2 ml-0.5 text-sm"
-                  >
-                    "User name" must have a value.
-                  </p>
+                  />
                 </div>
                 <!-- password -->
-                <div class="flex flex-col text-slate-300">
+                <div class="flex flex-col text-slate-900">
                   <label for="" class="mt-2.5 flex items-center"
-                    >Password<span class="text-red-500 text-3xl relative ml-0.5"
+                    >Mật khẩu<span class="text-red-500 text-3xl relative ml-0.5"
                       >*</span
                     ></label
                   >
                   <div class="flex-1 relative">
                     <span class="absolute inset-y-0 right-0 flex items-center">
                       <span
-                        v-if="!showPassword"
                         @click="showPassword = !showPassword"
-                        class="material-symbols-outlined mr-2 text-slate-300 cursor-pointer"
+                        class="material-symbols-outlined mr-2 text-slate-300 cursor-pointer hover:text-slate-900"
                       >
-                        visibility
-                      </span>
-                      <span
-                        @click="showPassword = !showPassword"
-                        v-if="showPassword"
-                        class="material-symbols-outlined mr-2 text-slate-300 cursor-pointer"
-                      >
-                        visibility_off
+                        {{ showPassword ? "visibility" : "visibility_off" }}
                       </span>
                     </span>
                     <Field
-                      v-if="showPassword == true"
                       v-model="item.password"
-                      class="bg-inherit w-full rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                      style=""
-                      name="passwd"
-                      type="password"
-                      placeholder=""
-                      :class="
-                        !item.password ? 'border-red-500' : 'border-slate-600'
-                      "
-                      autocomplete="off"
-                    />
-                    <Field
-                      v-if="showPassword == false"
-                      v-model="item.password"
-                      class="bg-inherit w-full rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                      class="bg-inherit w-full rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                       style=""
                       name="password"
-                      type="text"
+                      :type="!showPassword ? 'password' : 'text'"
                       placeholder=""
                       :class="
-                        !item.password ? 'border-red-500' : 'border-slate-600'
+                        errors.password ? 'border-red-500' : 'border-slate-300'
                       "
                       autocomplete="off"
                     />
                   </div>
-                  <p
-                    v-if="!item.password"
+                  <ErrorMessage
+                    name="password"
                     class="text-red-500 mt-2 ml-0.5 text-sm"
-                  >
-                    "Password" must have a value.
-                  </p>
+                  />
                 </div>
-                <!-- role -->
-                <div class="flex flex-col text-slate-300">
+                <button
+                  @click="
+                    () => {
+                      checks = {
+                        province: false,
+                        district: false,
+                        ward: false,
+                      };
+                      checks1 = {
+                        province: false,
+                        district: false,
+                        ward: false,
+                      };
+                      if (
+                        !errors.phone &&
+                        ((!errors.email && item.p_email) || !item.p_email) &&
+                        !errors.birthday &&
+                        item.p_province &&
+                        item.p_district &&
+                        item.p_ward &&
+                        item.c_province &&
+                        item.c_district &&
+                        item.c_ward
+                      ) {
+                        submit();
+                      }
+                    }
+                  "
+                  class="border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:shadow-lg hover:shadow-yellow-500/50"
+                  :class="[
+                    buttonName == 'Add'
+                      ? 'border-blue-500 bg-blue-500 text-white'
+                      : 'border-yellow-500 hover:bg-yellow-500',
+                  ]"
+                >
+                  Thêm
+                </button>
+              </div>
+            </div>
+            <!-- <div class="w-11/12" v-show="activeStep == 4">
+              <div class="">
+                <div class="flex flex-col text-slate-900">
                   <label for="" class="mt-2.5 flex items-center"
-                    >Role<span class="text-red-500 text-3xl relative ml-0.5"
+                    >Tên nhà trẻ<span
+                      class="text-red-500 text-3xl relative ml-0.5"
                       >*</span
                     ></label
                   >
                   <FSelect
                     class=""
-                    :options="[
-                      {
-                        _id: 'BGH',
-                        name: 'Ban Giám Hiệu',
-                      },
-                      {
-                        _id: 'GVQLT',
-                        name: 'Giáo Viên Quản Lý Trẻ',
-                      },
-                      {
-                        _id: 'PH',
-                        name: 'Phụ Huynh',
-                      },
-                      {
-                        _id: 'QTHT',
-                        name: 'Quản Trị Hệ Thống',
-                      },
-                      {
-                        _id: 'KT',
-                        name: 'Kế Toán',
-                      },
-                      {
-                        _id: 'GVDD',
-                        name: 'Giáo Viên Điều Dướng',
-                      },
-                    ]"
-                    @update:modelValue="(value) => (item.role = value)"
-                    :modelvalue="item.role"
+                    :options="childcareCenter"
+                    @update:modelValue="
+                      (value) => (item.childcareCenter = value)
+                    "
                   />
-                  <p v-if="!item.role" class="text-red-500 mt-2 ml-0.5 text-sm">
-                    "Role" must have a value.
+                  <p
+                    v-if="!item.childcareCenter"
+                    class="text-red-500 mt-2 ml-0.5 text-sm"
+                  >
+                    Đây là trường bắt buộc.
                   </p>
                 </div>
               </div>
-              <!-- Button Add -->
-              <button
-                @click="submit"
-                class="text-slate-300 border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:text-slate-100"
-                :class="[
-                  buttonName == 'Add'
-                    ? 'border-green-500 hover:bg-green-500'
-                    : 'border-yellow-500 hover:bg-yellow-500',
-                ]"
-              >
-                {{ buttonName }}
-              </button>
-            </div>
+              
+            </div> -->
           </div>
           <div class="flex justify-end mt-5">
             <span
               v-if="activeStep > 1 && activeStep <= stepList.length"
-              class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
+              class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-900 text-slate-900 hover:border-gray-200 hover:bg-gray-200 cursor-pointer"
               @click="activeStep = activeStep - 1"
-              >Previous</span
+              >Trước</span
             >
             <span
               v-if="activeStep >= 1 && activeStep < stepList.length"
-              class="flex items-center ml-5 px-5 py-1.5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
+              class="flex items-center ml-5 px-5 py-1.5 rounded-md border border-solid border-slate-900 text-slate-900 hover:border-gray-200 hover:bg-gray-200 cursor-pointer"
               @click="activeStep = activeStep + 1"
-              >Next
+              >Kế tiếp
             </span>
           </div>
         </div>
@@ -494,90 +538,98 @@
     v-slot="{ errors }"
   >
     <div
-      class="fixed top-0 right-0 w-screen h-screen z-50 flex overflow-auto items-center justify-center"
+      class="fixed top-0 right-0 w-screen h-screen z-50 flex items-center justify-center"
     >
-      <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
+      <div class="bg-slate-900 h-screen opacity-70 flex-1 relative"></div>
       <div
-        class="bg-slate-800 mx-5 w-6/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
+        class="bg-white mx-5 w-4/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
         style="min-height: 100px"
       >
         <div
           class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
         >
-          <span>{{ title }}</span>
+          <span class="text-slate-900">{{ title }}</span>
           <span
             @click="cancel"
-            class="material-symbols-outlined cursor-pointer text-slate-600 hover:text-slate-300"
+            class="material-symbols-outlined cursor-pointer text-slate-900 hover:text-red-500"
+            title="Đóng"
           >
             close
           </span>
         </div>
         <div class="flex flex-col my-5 mx-3">
-          <div class="flex flex-row mt-5">
-            <!--! page 2 -->
-            <div class="w-full">
-              <div class="flex">
-                <!-- name -->
-                <div class="flex w-6/12 flex-col text-slate-300">
-                  <label for="name_c" class="-mt-2.5 flex items-center"
-                    >Name<span class="text-red-500 text-3xl relative ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <Field
-                    v-model="item.name"
-                    class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                    name="name_c"
-                    type="text"
-                    placeholder=""
-                    :class="!item.name ? 'border-red-500' : 'border-slate-600'"
-                    autocomplete="off"
+          <div class="flex flex-row">
+            <div
+              class="w-full overflow-auto pr-3 pt-3"
+              style="max-height: calc(100vh - 250px)"
+            >
+              <!-- name -->
+              <div class="flex flex-col text-slate-900">
+                <label for="name_c" class="-mt-2.5 flex items-center"
+                  >Họ và tên<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <Field
+                  v-model="item.name"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
+                  name="name_c"
+                  type="text"
+                  placeholder=""
+                  :class="errors.name_c ? 'border-red-500' : 'border-slate-300'"
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="name_c"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
+              </div>
+              <!-- gender -->
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Giới tính<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <div class="flex items-center">
+                  <input
+                    type="radio"
+                    id="male3"
+                    name="gender3"
+                    value="true"
+                    v-model="item.gender"
+                    class="mr-2"
+                    :checked="item.gender == 'true'"
                   />
-                  <ErrorMessage
-                    name="name_c"
-                    class="text-red-500 mt-2 ml-0.5 text-sm"
+                  <label for="male" class="mr-4 mt-1">Nam</label>
+
+                  <input
+                    type="radio"
+                    id="female3"
+                    name="gender3"
+                    value="false"
+                    v-model="item.gender"
+                    class="mr-2"
+                    :checked="item.gender == 'false'"
                   />
-                </div>
-                <!-- gender -->
-                <div class="flex w-6/12 flex-col text-slate-300 ml-3">
-                  <label for="" class="-mt-2.5 flex items-center"
-                    >Gender<span class="text-red-500 text-3xl relative ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <FSelect
-                    class=""
-                    @update:modelValue="(value) => (item.gender = value)"
-                    @update="(value) => (runGet = value)"
-                    :options="[
-                      {
-                        _id: 'true',
-                        name: 'nam',
-                      },
-                      {
-                        _id: 'false',
-                        name: 'nữ',
-                      },
-                    ]"
-                    :modelValue="item.gender_format"
-                  />
+                  <label for="female3" class="mt-1">Nữ</label>
                 </div>
               </div>
               <!-- birthday -->
-              <div class="flex flex-col text-slate-300">
+              <div class="flex flex-col text-slate-900">
                 <label for="name_c" class="mt-2.5 ml-1 flex items-center"
-                  >Birthday<span class="text-red-500 text-3xl relative ml-0.5"
+                  >Ngày sinh<span class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.birthday"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="birthday"
                   type="date"
                   placeholder=""
                   :class="
-                    !item.birthday ? 'border-red-500' : 'border-slate-600'
+                    errors.birthday ? 'border-red-500' : 'border-slate-300'
                   "
                   autocomplete="off"
                 />
@@ -587,24 +639,31 @@
                 />
               </div>
               <!-- address -->
-              <div class="flex flex-col text-slate-300">
+              <LocationPicker2
+                :province="item.province"
+                :district="item.district"
+                :ward="item.ward"
+                :checks="checks1"
+                @province-selected="(value) => (item.province = value)"
+                @district-selected="(value) => (item.district = value)"
+                @ward-selected="(value) => (item.ward = value)"
+              />
+              <div class="flex flex-col text-slate-900">
                 <label for="" class="mt-2.5 flex items-center"
-                  >Address<span class="text-red-500 text-3xl relative ml-0.5"
+                  >Địa chỉ thường trú<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.address"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="address_c"
-                  id="address_c"
+                  as="textarea"
                   style=""
-                  type="text"
                   placeholder=""
                   :class="
-                    !item.address || errors.address_c
-                      ? 'border-red-500'
-                      : 'border-slate-600'
+                    errors.address_c ? 'border-red-500' : 'border-slate-300'
                   "
                   autocomplete="off"
                 />
@@ -614,15 +673,31 @@
                 />
               </div>
               <button
-                @click="submit"
-                class="text-slate-300 border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:text-slate-100"
+                @click="
+                  () => {
+                    checks1 = {
+                      province: false,
+                      district: false,
+                      ward: false,
+                    };
+                    if (
+                      !errors.birthday &&
+                      item.province &&
+                      item.district &&
+                      item.ward
+                    ) {
+                      submit();
+                    }
+                  }
+                "
+                class="text-white border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:shadow-lg hover:shadow-yellow-500/50"
                 :class="[
                   buttonName == 'Add'
                     ? 'border-green-500 hover:bg-green-500'
-                    : 'border-yellow-500 hover:bg-yellow-500',
+                    : 'border-yellow-500 bg-yellow-500',
                 ]"
               >
-                {{ buttonName }}
+                {{ buttonName == "Edit" ? "Cập nhật" : "Thêm" }}
               </button>
             </div>
           </div>
@@ -638,6 +713,12 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import FSelect from "./Select.vue";
 import BAdd from "../buttons/Add.vue";
 import Account from "../../services/account.service";
+import ChildcareCenter from "../../services/childcareCenter.service";
+import axios from "axios";
+import LocationPicker from "../../components/forms/LocationPicker.vue";
+import LocationPicker1 from "../../components/forms/LocationPicker.vue";
+import LocationPicker2 from "../../components/forms/LocationPicker.vue";
+import { alert_input_1 } from "../../assets/js/alert.js";
 
 export default {
   components: {
@@ -646,6 +727,9 @@ export default {
     ErrorMessage,
     FSelect,
     BAdd,
+    LocationPicker,
+    LocationPicker1,
+    LocationPicker2,
   },
   props: {
     title: {
@@ -683,19 +767,34 @@ export default {
   },
   data() {
     const formSchema = yup.object().shape({
-      name: yup.string().required(`"Name" must have a value.`),
-      name_c: yup.string().required(`"Name" must have a value.`),
+      name: yup.string().required(`Đây là trường bắt buộc.`),
+      name_c: yup.string().required(`Đây là trường bắt buộc.`),
       phone: yup
         .string()
-        .required(`"Phone" must have a value.`)
-        .matches(/((09|03|07|08|05)+([0-9]{8})\b)/g, `Incorrect phone.`),
-      email: yup
-        .string()
-        .required(`"E-mail" must have a value.`)
-        .email("Incorrect e-mail."),
-      address: yup.string().required(`"Address" must have a value.`),
-      address_c: yup.string().required(`"Address" must have a value.`),
-      birthday: yup.date(),
+        .required(`Đây là trường bắt buộc.`)
+        .matches(
+          /((09|03|07|08|05)+([0-9]{8})\b)/g,
+          `Số điện thoại không hợp lệ.`
+        ),
+      email: yup.string().email("Địa chỉ mail không hợp lệ."),
+      address: yup.string().required(`Đây là trường bắt buộc.`),
+      address_c: yup.string().required(`Đây là trường bắt buộc.`),
+      birthday: yup
+        .date()
+        .required(`Đây là trường bắt buộc.`)
+        .max(new Date(), "Ngày sinh không được lớn hơn ngày hiện tại.")
+        .test("age", "Tuổi trẻ phải từ 0-6 tuổi.", (value) => {
+          if (value) {
+            const today = new Date();
+            const age = today.getFullYear() - value.getFullYear();
+            return age >= 0 && age <= 6;
+          }
+          return false;
+        }),
+      startSchooling: yup.date().required(`Đây là trường bắt buộc.`),
+      // .min(new Date(), "Ngày bắt đầu nhập học phải lớn hơn ngày hiện tại."),
+      username: yup.string().required(`Đây là trường bắt buộc.`),
+      password: yup.string().required(`Đây là trường bắt buộc.`),
     });
     return {
       formSchema,
@@ -708,29 +807,46 @@ export default {
       stepList: [
         {
           id: 1,
-          name: "Parent",
+          name: "Thông tin phụ huynh",
         },
         {
           id: 2,
-          name: "Child",
+          name: "Thông tin trẻ",
         },
         {
           id: 3,
-          name: "Account",
+          name: "Thông tin tài khoản",
         },
       ],
       activeStep: 1,
       showPassword: true,
       accounts: [],
       checkUser: true,
+      modeAdd: true,
+      addressFull: [],
+      checks: {
+        province: true,
+        district: true,
+        ward: true,
+      },
+      checks1: {
+        province: true,
+        district: true,
+        ward: true,
+      },
+      childcareCenter: [],
     };
   },
   methods: {
+    alert_input_1,
     cancel() {
       this.$emit("cancel", false);
     },
     submit() {
       this.$emit("submit");
+    },
+    cLog(value) {
+      console.log(value);
     },
     // Hàm để tạo OTP
     generateOTP() {
@@ -749,13 +865,24 @@ export default {
     },
 
     setUser() {
-      this.item.user_name = this.item.c_name;
+      this.item.user_name = this.item.c_name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .split(" ")
+        .join("");
       this.generateOTP();
     },
 
     async getAllAccounts() {
       try {
         this.accounts = await Account.getAll();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async getAllChildcareCenter() {
+      try {
+        this.childcareCenter = await ChildcareCenter.getAll();
       } catch (error) {
         console.log(error);
       }
@@ -771,6 +898,21 @@ export default {
   },
   created() {
     this.getAllAccounts();
+    this.getAllChildcareCenter();
+    const apiUrl = "https://provinces.open-api.vn/api/";
+    const params = { depth: 3 };
+
+    // Sử dụng axios để gửi yêu cầu GET
+    axios
+      .get(apiUrl, { params })
+      .then((response) => {
+        // Xử lý dữ liệu trả về từ API
+        console.log("Dữ liệu từ API:", response.data);
+        this.addressFull = response.data;
+      })
+      .catch((error) => {
+        console.error("Lỗi khi gọi API:", error);
+      });
   },
 };
 </script>

@@ -22,6 +22,12 @@ class ChildrenService {
   async delete(id) {
     return (await this.api.delete(`/${id}`)).data;
   }
+  async create_statusChange(data) {
+    return (await this.api.post("/historyStatus", data)).data;
+  }
+  async transfer_school(data) {
+    return (await this.api.post("/schoolTransferHistory", data)).data;
+  }
 }
 
 export default new ChildrenService();

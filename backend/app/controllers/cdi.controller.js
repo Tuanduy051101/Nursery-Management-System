@@ -2,30 +2,45 @@ const { CDI, Classes, Children, Month } = require('../models/model');
 const Error = require('http-errors');
 
 exports.create = async (req, res, next) => {
+    console.log(req.body);
     try {
-        const { child, classes, month, height = 0, weight = 0, health = 'không có', roses = 0, note = 'không có' } = req.body;
+        const { children, classes, month, height = 0, weight = 0, health = 'bình thường', roses = 0, note = 'không có' } = req.body;
 
-        if (!child || !classes || !month) {
+        if (!children || !classes || !month) {
             return res.send({
-              error: true,
-              message: 'Missing required fields.'
+                error: true,
+                message: 'Thiếu các trường bắt buộc.'
             });
-          }
-
-        const check = await CDI.exists({ child: { $in: child }, classes: { $in: classes }, month: { $in: month } });
-        if (check) {
-            return next(Error(401, 'Already exists'));
-        } else {
-            const document = await CDI.create({ child, classes, month, height, weight, health, roses, note });
-
-            const [dChild, dClasses, dMonth] = await Promise.all([
-                Children.findByIdAndUpdate(child, { $push: { cDI: document._id } }, { new: true }),
-                Classes.findByIdAndUpdate(classes, { $push: { cdi: document._id } }, { new: true }),
-                Month.findByIdAndUpdate(month, { $push: { cDI: document._id } }, { new: true })
-            ]);
-
-            return res.send(document);
         }
+
+        var s = 0, e = 0;
+
+        for (let child of children) {
+            const check = await CDI.exists({ child: child, month: month, classes: classes });
+            const x = await CDI.find({ child: child, month: month, classes: classes });
+            console.log(x);
+            if (check) {
+                e++;
+            } else {
+                const document = await CDI.create({ child, classes, month, height, weight, health, roses, note });
+
+                const [dChild, dClasses, dMonth] = await Promise.all([
+                    Children.findByIdAndUpdate(child, { $push: { cDI: document._id } }, { new: true }),
+                    Classes.findByIdAndUpdate(classes, { $push: { cdi: document._id } }, { new: true }),
+                    Month.findByIdAndUpdate(month, { $push: { cDI: document._id } }, { new: true })
+                ]);
+            }
+        }
+        if (e != 0) {
+            return res.send({
+                error: true,
+                message: `Chỉ số phát triển của ${month} này đã tồn tại.`
+            })
+        }
+        return res.send({
+            error: false,
+            message: 'Đã tạo thành công.'
+        })
     } catch (error) {
         return next(Error(500, 'Error saving'));
     }

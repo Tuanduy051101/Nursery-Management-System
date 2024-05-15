@@ -1,110 +1,97 @@
-const { Meal, Classes, MealTicket } = require('../models/model');
-const Error = require('http-errors');
+const { Meal } = require('../models/model');
+const httpError = require('http-errors');
 
 exports.create = async (req, res, next) => {
-    if (Object.keys(req.body).length != 0) {
-        const dish = req.body.dish,
-            grade = req.body.grade,
-            timeStart = req.body.timeStart,
-            timeEnd = req.body.timeEnd,
-            date = req.body.date;
+    try {
+        console.log(req.body);
+        const { dishes, grade, session, date, note } = req.body;
 
-        // const check = await Meal.find({ name: name });
-        const check = 0;
-        if (check != 0) return next(Error(401, 'Already exists'));
-        else {
-            try {
-                const document = await new Meal({
-                    timeStart: timeStart,
-                    timeEnd: timeEnd,
-                    date: date,
-                }).save();
+        const check_grade = grade.every(item => !item.checked);
 
-                const meal = await Meal.findById(document._id);
-
-                for (var value of dish) {
-                    meal.dish.push(value.id);
-                }
-
-                for (var value of grade) {
-                    if (value.checked == true) {
-                        meal.grade.push(value._id);
-                    }
-                }
-
-                await meal.save();
-
-                return res.send({
-                    error: false,
-                    message: document,
-                });
-            } catch (error) {
-                return next(
-                    Error(500, 'Error saving')
-                )
-            }
+        if (!dishes.length || check_grade || !session || !date) {
+            return res.send({
+                error: true,
+                message: 'Thiếu những trường bắt buộc.'
+            });
         }
+        const newMeal = await Meal.create({
+            session,
+            date,
+            note: note || 'không có',
+            dish: dishes.map(item => item._id),
+            grade: grade.filter(item => item.checked).map(item => item._id)
+        });
+
+        res.send({ error: false, message: 'Đã tạo thành công.' });
+    } catch (error) {
+        console.log(error);
+        next(httpError(500, 'Error saving'));
     }
-}
+};
 
 exports.findAll = async (req, res, next) => {
     try {
-        const documents = await Meal.find().populate("dish").populate({
-            path: 'mealTicket',
-            populate: {
-                path: 'evaluate',
+        const documents = await Meal.find().populate([
+            'grade',
+            'session',
+            {
+                path:'dish',
+                populate: {
+                    path: 'childcareCenter',
+                }
+            },
+            {
+                path: 'mealTicket',
+                populate: {
+                    path: 'child'
+                }
             }
-        });
+        ]);
         res.send(documents);
     } catch (error) {
-        return next(
-            Error(500, 'Error finding documents')
-        )
+        next(httpError(500, 'Error finding documents'));
     }
-}
+};
 
 exports.deleteAll = async (req, res, next) => {
     try {
         const documents = await Meal.deleteMany();
         res.send(documents);
     } catch (error) {
-        return next(
-            Error(500, 'Error deleting documents')
-        )
+        next(httpError(500, 'Error deleting documents'));
     }
-}
+};
 
 exports.delete = async (req, res, next) => {
     try {
         const result = await Meal.findByIdAndDelete(req.params.id);
-        res.send(result);
+        return res.send({ 
+            error: false,
+            message: 'Đã xoá thành công.'
+        });
     } catch (error) {
-        return next(
-            Error(500, 'Error deleting document')
-        )
+        next(httpError(500, 'Error deleting document'));
     }
-}
+};
 
 exports.find = async (req, res, next) => {
     try {
-        const document = await Meal.findById(req.params.id).populate({
-            path: 'dish',
-            populate: {
-                path: 'ingredient',
+        const document = await Meal.findById(req.params.id).populate([
+            'session',
+            'grade',
+            'mealTicket',
+            {
+                path: 'dish',
                 populate: {
-                    path: 'foodstuff',
+                    path: 'ingredient',
+                    populate: {
+                        path: 'foodstuff'
+                    }
                 }
             }
-        }).populate("grade").populate({
-            path: 'mealTicket',
-            populate: {
-                path: 'evaluate',
-            }
-        });
+        ])
         res.send(document);
     } catch (error) {
-        return next(
-            Error(500, 'Error finding document')
-        )
+        next(httpError(500, 'Error finding document'));
     }
-}
+};

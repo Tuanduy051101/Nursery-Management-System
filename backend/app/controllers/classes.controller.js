@@ -1,5 +1,22 @@
-const { Classes, SchoolYear, Grade, Children } = require('../models/model');
+const { Classes, SchoolYear, Grade, Children, HistoryStatus } = require('../models/model');
 const Error = require('http-errors');
+
+const calculateAgeInMonths = (birthDate, currentDate) => {
+    // Convert birthDate and currentDate to Date objects
+    var birthDateObj = new Date(birthDate);
+    var currentDateObj = new Date(currentDate);
+
+    // Calculate the number of years old
+    var yearsOld = currentDateObj.getFullYear() - birthDateObj.getFullYear();
+
+    // Calculate the remaining months
+    var remainingMonths = currentDateObj.getMonth() - birthDateObj.getMonth();
+
+    // Calculate the total number of months
+    var totalMonths = yearsOld * 12 + remainingMonths;
+
+    return totalMonths;
+}
 
 exports.create = async (req, res, next) => {
     try {
@@ -8,7 +25,7 @@ exports.create = async (req, res, next) => {
         if (!name || !grade || !schoolYear) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
 
@@ -20,7 +37,7 @@ exports.create = async (req, res, next) => {
             ]
         });
         if (check) {
-            return res.send({ error: true, message: 'Already exists.' });
+            return res.send({ error: true, message: 'Lớp đã tồn tại.' });
         } else {
             const document = await new Classes({
                 name,
@@ -33,7 +50,7 @@ exports.create = async (req, res, next) => {
                 SchoolYear.findByIdAndUpdate(schoolYear, { $push: { classes: document._id } }, { new: true })
             ]);
 
-            return res.send({ error: false, message: [document] });
+            return res.send({ error: false, message: 'Đã tạo thành công.' });
         }
     } catch (error) {
         return next(Error(500, 'Error saving'));
@@ -47,17 +64,16 @@ exports.createAuto = async (req, res, next) => {
         if (!grade || !schoolYear || !amountClasses) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
-
         // temporary variables
         let j = 1, h = amountClasses;
         let grade_name = (await Grade.findById(grade)).name;
         let schoolYear_name = (await SchoolYear.findById(schoolYear)).name;
         let result = [];
         do {
-            let name = `K1${grade_name.split('')[0]}${schoolYear_name.split('-')[0].split('').slice(2).join('')}`;
+            let name = `NT${grade_name.split(' ')[2]}t${schoolYear_name.split('-')[0].split('').slice(2).join('')}`;
             if (j < 10) name += `0${j}`;
             else name += j + 1;
             const check = await Classes.exists({
@@ -84,7 +100,7 @@ exports.createAuto = async (req, res, next) => {
             }
         } while (h > 0)
 
-        return res.send({ error: false, message: `Successfully created ${amountClasses} ${amountClasses == 1 ? 'class' : 'classes'}.`, result: result });
+        return res.send({ error: false, message: `Đã tạo thành công ${amountClasses} lớp.`, result: result });
 
     } catch (error) {
         console.log(error);
@@ -102,6 +118,27 @@ exports.findAll = async (req, res, next) => {
                 path: 'assignment',
                 populate: {
                     path: 'teacher',
+                }
+            },
+            {
+                path: 'cdi',
+                populate: {
+                    path: 'month child'
+                }
+            },
+            {
+                path: 'attendance',
+                populate: {
+                    path: 'session',
+                }
+            },
+            {
+                path: 'mealTicket',
+                populate: {
+                    path: 'meal',
+                    populate: {
+                        path: 'session',
+                    }
                 }
             }
         ]);
@@ -126,7 +163,7 @@ exports.delete = async (req, res, next) => {
 
         res.send({
             error: false,
-            message: 'Successfully deleted.'
+            message: 'Đã xoá thành công.'
         });
     } catch (error) {
         return next(Error(500, 'Error deleting document'));
@@ -135,43 +172,67 @@ exports.delete = async (req, res, next) => {
 
 exports.find = async (req, res, next) => {
     try {
-        const document = await Classes.findById(req.params.id).populate("grade").populate("schoolYear").populate({
-            path: 'assignment',
-            populate: {
-                path: 'teacher',
+        const document = await Classes.findById(req.params.id).populate([
+            {
+                path: 'schoolYear',
                 populate: {
-                    path: 'position',
+                    path: 'childcareCenter',
                 }
-            }
-        }).populate({
-            path: 'cdi',
-            populate: {
-                path: 'child',
-            }
-        }).populate({
-            path: 'children',
-            populate: {
-                path: 'parentDetails',
-            }
-        }).populate('receipt').populate({
-            path: 'mealTicket',
-            populate: {
-                path: 'meal',
+            },
+            'grade',
+            {
+                path: 'assignment',
                 populate: {
-                    path: 'dish',
-                    populate: {
-                        path: 'ingredient',
+                    path: 'duty teacher',
+                }
+            },
+            {
+                path: 'cdi',
+                populate: [
+                    {
+                        path: 'month'
+                    },
+                    {
+                        path: 'child',
+                        populate: {
+                            path: 'parentDetails'
+                        }
                     }
+                ]
+            },
+            {
+                path: 'children',
+                populate: {
+                    path: 'parentDetails',
+                }
+            },
+            {
+                path: 'receipt',
+                populate: {
+                    path: 'child classes'
+                }
+            },
+            {
+                path: 'mealTicket',
+                populate: [
+                    {
+                        path: 'meal', populate: {
+                            path: 'dish session'
+                        }
+                    },
+                    { path: 'child' }
+                ]
+            },
+            {
+                path: 'attendance',
+                populate: {
+                    path: 'child session',
                 }
             }
-        }).populate({
-            path: 'attendance',
-            populate: {
-                path: 'child',
-            }
-        });
+        ]);
         res.send([document]);
     } catch (error) {
+        console.log(error);
         return next(Error(500, 'Error finding document'));
     }
 };
@@ -181,7 +242,7 @@ exports.update = async (req, res, next) => {
     if (!name) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu những trường bắt buộc.'
         });
     }
     const classes = await Classes.findById(req.params.id);
@@ -195,14 +256,14 @@ exports.update = async (req, res, next) => {
     if (check) {
         return res.send({
             error: true,
-            message: 'Already exists.'
+            message: 'Lớp đã tồn tại.'
         });
     }
     try {
         const document = await Classes.findByIdAndUpdate(req.params.id, { name }, { new: true });
         return res.send({
             error: false,
-            message: 'Successfully updated.'
+            message: 'Đã cập nhật thông tin thành công.'
         });
     } catch (error) {
         return next(Error(500, 'Error updating document'));
@@ -216,7 +277,7 @@ exports.addChild_one = async (req, res, next) => {
     if (!classes || !child) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu những trường bắt buộc.'
         })
     }
     const check = await Classes.exists({
@@ -242,20 +303,28 @@ exports.addChild_one = async (req, res, next) => {
     }
 }
 
+const formatDateReverse = (value = new Date()) => {
+    const date = new Date(value);
+    let day = date.getDate(), month = date.getMonth() + 1, year = date.getFullYear();
+    if (month < 10) month = `0${month}`;
+    if (day < 10) day = `0${day}`;
+    return `${year}-${month}-${day}`;
+}
+
 exports.addChild_many = async (req, res, next) => {
     const { children } = req.body;
     const classes = req.params.id;
     if (!classes || !children) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu những trường bắt buộc.'
         })
     }
     const check_checked = children.some(value => value.checked);
     if (!check_checked) {
         return res.send({
             error: true,
-            message: 'Please select a child.'
+            message: 'Vui lòng chọn trẻ cần thêm vào lớp.'
         })
     }
     let count = 0;
@@ -270,6 +339,14 @@ exports.addChild_many = async (req, res, next) => {
                 const classes_D = await Classes.findByIdAndUpdate(classes, { $push: { children: child._id } }, { new: true });
                 const children_D = await Children.findByIdAndUpdate(child._id, { $push: { classes } }, { new: true });
                 count++;
+                const historyStatus = await HistoryStatus.create({
+                    status: 'đang học',
+                    date: formatDateReverse(),
+                    child: child._id,
+                    classes: classes,
+                });
+                await Children.findByIdAndUpdate(child._id, { $push: { historyStatus: historyStatus._id.toString() }, statusChild: historyStatus.status });
+                await Classes.findByIdAndUpdate(classes, { $push: { historyStatus: historyStatus._id.toString() } });
             } catch (error) {
                 return next(Error(500, 'Error add child document'));
             }
@@ -278,73 +355,96 @@ exports.addChild_many = async (req, res, next) => {
 
     return res.send({
         error: false,
-        message: `Successfully added ${count} child to the class.`,
+        message: `Đã thêm thành công ${count} trẻ vào lớp.`,
     })
 
 }
 
 exports.children_noneClass = async (req, res, next) => {
     let { grade, schoolYear } = await Classes.findById(req.params.id);
+    const gradeInfo = await Grade.findById(grade);
+    const schoolYearInfo = await SchoolYear.findById(schoolYear);
+    const childcareCenter = (await SchoolYear.findById(schoolYear)).childcareCenter.toString();
     grade = grade.toString();
     schoolYear = schoolYear.toString();
+
+    let ageList = [];
+    if (gradeInfo.name.split(' ')[2] == '3-12') {
+        ageList = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    } else if (gradeInfo.name.split(' ')[2] == '13-24') {
+        ageList = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+    } else if (gradeInfo.name.split(' ')[2] == '25-36') {
+        ageList = [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    }
+
     try {
         let classes = await Classes.find({ schoolYear });
         classes = classes.map(value => value._id.toString())
-        let children = await Children.find({}).populate('parentDetails');
+        let children = await Children.find({ childcareCenter }).populate('parentDetails');
+        children = children.filter(i => i.childcareCenter[i.childcareCenter.length - 1] == childcareCenter);
         children = children.filter(value => !value.classes.some(value1 => classes.includes(value1.toString())));
+        children = children.filter(i => ageList.some(j => j == calculateAgeInMonths(i.birthday, schoolYearInfo.startDate)));
         return res.send(children);
     } catch (error) {
         return next(Error(500, 'Error find child document'));
     }
 }
 
-
 exports.addChild_auto = async (req, res, next) => {
     let { amountChildren } = req.body;
-    let ageList = req.body.age ? [req.body.age] : [];
     const classesId = req.params.id;
     let { grade, schoolYear } = await Classes.findById(classesId);
+    const childcareCenter = (await SchoolYear.findById(schoolYear)).childcareCenter.toString();
     const gradeInfo = await Grade.findById(grade);
+    const schoolYearInfo = await SchoolYear.findById(schoolYear);
+    let ageList = [];
+    if (gradeInfo.name.split(' ')[2] == '3-12') {
+        ageList = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    } else if (gradeInfo.name.split(' ')[2] == '13-24') {
+        ageList = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+    } else if (gradeInfo.name.split(' ')[2] == '25-36') {
+        ageList = [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    }
     grade = grade.toString();
     schoolYear = schoolYear.toString();
-    if (!ageList || ageList.length == 0) {
-        if (gradeInfo.name == 'mầm') {
-            ageList = [0, 1, 2];
-        }
-        else if (gradeInfo.name == 'chồi') {
-            ageList = [3, 4];
-        }
-        else if (gradeInfo.name == 'lá') {
-            ageList = [5, 6];
-        }
-    }
-    if (!amountChildren || !ageList || !grade || !schoolYear) {
+    if (!amountChildren || !grade || !schoolYear) {
         return res.send({
             error: true,
-            message: 'Missing reuired fields.'
+            message: 'Thiếu những trường bắt buộc.'
         })
     }
     try {
         let classes = await Classes.find({ schoolYear });
         classes = classes.map(value => value._id.toString())
         let count = 0;
-        for (let age of ageList) {
-            let children = await Children.find({});
+        let children = await Children.find({ childcareCenter });
+        children = children.filter(i => i.childcareCenter[i.childcareCenter.length - 1] == childcareCenter);
+        children = children.filter(i => i.statusChild == 'nhập học' || i.statusChild == 'đang học');
+        // console.log(children);
+        children = children.filter(i => ageList.some(j => j == calculateAgeInMonths(i.birthday, schoolYearInfo.startDate)));
+        console.log(children);
+        children = children.filter(value => !value.classes.some(value1 => classes.includes(value1.toString())));
+        // children = children.filter(value => age == (new Date().getFullYear() - new Date(value.birthday).getFullYear()).toString());
+        for (let i = 0; i < parseInt(amountChildren); i++) {
             children = children.filter(value => !value.classes.some(value1 => classes.includes(value1.toString())));
-            children = children.filter(value => age == (new Date().getFullYear() - new Date(value.birthday).getFullYear()).toString());
-            for (let i = 0; i < parseInt(amountChildren); i++) {
-                children = children.filter(value => !value.classes.some(value1 => classes.includes(value1.toString())));
-                let child = children.shift();
-                if (child) {
-                    const classes_D = await Classes.findByIdAndUpdate(classesId, { $push: { children: child._id } }, { new: true });
-                    const children_D = await Children.findByIdAndUpdate(child._id, { $push: { classes: classesId } }, { new: true });
-                    count++;
-                }
+            let child = children.shift();
+            if (child) {
+                const classes_D = await Classes.findByIdAndUpdate(classesId, { $push: { children: child._id } }, { new: true });
+                const children_D = await Children.findByIdAndUpdate(child._id, { $push: { classes: classesId } }, { new: true });
+                count++;
+                const historyStatus = await HistoryStatus.create({
+                    status: 'đang học',
+                    date: formatDateReverse(),
+                    child: child._id,
+                    classes: classesId,
+                });
+                await Children.findByIdAndUpdate(child._id, { $push: { historyStatus: historyStatus._id.toString() }, statusChild: historyStatus.status });
+                await Classes.findByIdAndUpdate(classesId, { $push: { historyStatus: historyStatus._id.toString() } });
             }
         }
         return res.send({
             error: false,
-            message: `Successfully added ${count} child to the class.`,
+            message: `Đã thêm thành công ${count} trẻ vào lớp.`,
         })
     } catch (error) {
         console.log(error);
@@ -354,23 +454,29 @@ exports.addChild_auto = async (req, res, next) => {
 
 exports.removeChild_many = async (req, res, next) => {
     const { children } = req.body;
-    console.log(req.body);
     const classes = req.params.id;
     if (!classes || !children) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu những trường bắt buộc.'
         })
     }
     const check_checked = children.some(value => value.checked);
     if (!check_checked) {
         return res.send({
             error: true,
-            message: 'Please select a child.'
+            message: 'Vui lòng chọn trẻ muốn xoá khỏi lớp.'
         })
     }
     let count = 0;
     for (let child of children) {
+        const childInfo = await Children.findById(child._id);
+        if (childInfo.attendance.length != 0 || childInfo.mealTicket.length != 0) {
+            return res.send({
+                error: true,
+                message: `Vui lòng thực hiện chuyển lớp.`,
+            })
+        }
         const check = await Classes.exists({
             $and: [
                 { _id: classes }, { children: { $in: [child._id] } }
@@ -381,7 +487,23 @@ exports.removeChild_many = async (req, res, next) => {
                 const classes_D = await Classes.findByIdAndUpdate(classes, { $pull: { children: child._id } }, { new: true });
                 const children_D = await Children.findByIdAndUpdate(child._id, { $pull: { classes } }, { new: true });
                 count++;
+                const classesInfo = await Classes.findById(classes).populate('historyStatus');
+                const historyStatusInfo = classesInfo.historyStatus.filter(i => i.child.toString() == child._id)[0];
+                console.log(historyStatusInfo);
+                await Children.findByIdAndUpdate(child, { $pull: { historyStatus: historyStatusInfo._id.toString() } });
+                await Classes.findByIdAndUpdate(classes, { $pull: { historyStatus: historyStatusInfo._id.toString() } });
+                await HistoryStatus.findByIdAndDelete(historyStatusInfo._id.toString());
+
+                const childrenInfo = await Children.findById(child._id).populate('historyStatus');
+
+                if (childrenInfo.historyStatus.length > 0) {
+                    await Children.findByIdAndUpdate(child._id, { statusChild: childrenInfo.historyStatus[childrenInfo.historyStatus.length - 1].status });
+                } else {
+                    await Children.findByIdAndUpdate(child._id, { statusChild: 'nhập học' });
+                }
+                console.log(historyStatusInfo);
             } catch (error) {
+                console.log(error);
                 return next(Error(500, 'Error add child document'));
             }
         }
@@ -389,7 +511,7 @@ exports.removeChild_many = async (req, res, next) => {
 
     return res.send({
         error: false,
-        message: `Successfully deleted ${count} child from the class.`,
+        message: `Đã xoá thành công ${count} trẻ khỏi lớp.`,
     })
 }
 
@@ -402,13 +524,33 @@ exports.removeChild = async (req, res, next) => {
             message: 'Missing required fields.'
         })
     }
-    console.log(child, classes);
+    const childInfo = await Children.findById(child);
+    if (childInfo.attendance.length != 0 || childInfo.mealTicket.length != 0) {
+        return res.send({
+            error: true,
+            message: `Vui lòng thực hiện chuyển lớp.`,
+        })
+    }
     try {
         const classes_D = await Classes.findByIdAndUpdate(classes, { $pull: { children: child } }, { new: true });
         const children_D = await Children.findByIdAndUpdate(child, { $pull: { classes } }, { new: true });
+        const classesInfo = await Classes.findById(classes).populate('historyStatus');
+        const historyStatusInfo = classesInfo.historyStatus.filter(i => i.child.toString() == child)[0];
+        await Children.findByIdAndUpdate(child, { $pull: { historyStatus: historyStatusInfo._id.toString() } });
+        await Classes.findByIdAndUpdate(classes, { $pull: { historyStatus: historyStatusInfo._id.toString() } });
+        await HistoryStatus.findByIdAndDelete(historyStatusInfo._id.toString());
+
+        const childrenInfo = await Children.findById(child).populate('historyStatus');
+
+        if (childrenInfo.historyStatus.length > 0) {
+            await Children.findByIdAndUpdate(child, { statusChild: childrenInfo.historyStatus[childrenInfo.historyStatus.length - 1].status });
+        } else {
+            await Children.findByIdAndUpdate(child, { statusChild: 'nhập học' });
+        }
+
         return res.send({
             error: false,
-            message: 'Successfully removed child from the class.',
+            message: 'Đã xoá trẻ khỏi lớp thành công.',
         })
     } catch (error) {
         console.log(error);

@@ -1,31 +1,39 @@
+
 <template>
   <div class="flex flex-row items-center justify-between">
-    <div class="space-x-4">
-      <span class="text-green-500 text-xl ml-2 uppercase tracking-widest logo"
-        >Nursery</span
-      >
-      <span class="text-yellow-500 text-xl ml-2 uppercase tracking-widest logo"
-        >Management</span
-      >
-      <span class="text-red-500 text-xl ml-2 uppercase tracking-widest logo"
-        >System</span
-      >
+    <div class="space-x-4 mt-2">
+      <span class="text-3xl ml-2 font-extrabold">
+        <span
+          class="text-yellow-600"
+          style="text-shadow: 2px 2px 4px rgba(210, 225, 5, 0.5)"
+          >Hệ Thống&ensp;</span
+        >
+        <span
+          class="text-blue-500"
+          style="text-shadow: 2px 2px 4px rgba(11, 4, 234, 0.5)"
+          >Quản Lý Nhà Trẻ</span
+        >
+      </span>
     </div>
 
     <div class="flex">
-      <div class="mx-10 mt-1.5">
-        <!-- task -->
+      <div class="mx-10 mt-2">
         <div class="flex justify-end items-center -space-x-2.5">
-          <a class="flex items-center group border rounded-sm">
+          <!-- Thêm một nút hoặc biểu tượng để mở thông báo -->
+          <a
+            class="flex items-center group border rounded-sm cursor-pointer"
+            @click="toggleNotifications"
+          >
             <span
-              class="material-symbols-outlined group-hover:text-white text-slate-300 cursor-pointer"
+              class="material-symbols-outlined group-hover:bg-gray-200 group-hover:border-gray-200 rounded-full text-slate-900 cursor-pointer"
               >notifications</span
             >
           </a>
           <div
-            class="bg-red-900 rounded-full shadow-xl text-slate-300 mb-6 px-2 pt-0.5"
+            class="bg-red-400 rounded-full text-white mb-6 flex justify-center items-center pt-1"
+            style="height: 20px; width: 20px"
           >
-            0
+            <span>{{ unreadNotificationCount }}</span>
           </div>
         </div>
       </div>
@@ -36,6 +44,7 @@
           id="menu-button"
           aria-expanded="true"
           aria-haspopup="true"
+          @click="showAdvanced = !showAdvanced"
         >
           <!-- <img class="shrink-0 h-12 w-12 rounded-full border border-solid border-slate-600" src="https://cdn.pixabay.com/photo/2022/05/15/13/38/woman-7198072__340.jpg" alt="avatar" /> -->
           <div
@@ -44,40 +53,191 @@
             {{ getFirstLetter(username) }}
           </div>
           <div class="ml-3 mr-2">
-            <p class="text-base font-medium text-slate-300">{{ username }}</p>
-            <p class="text-xs font-medium text-white">{{ role }}</p>
+            <p class="text-base font-medium text-slate-900">
+              {{ capitalizeEveryWord(username) }}
+            </p>
+            <p class="text-xs font-medium text-slate-900">
+              {{ capitalizeEveryWord(role) }}
+            </p>
           </div>
         </div>
         <ul
-          class="hidden w-40 absolute right-0 mt-2 py-2 bg-white border border-gray-300 rounded-md shadow-lg z-10 group-hover:block"
+          v-if="showAdvanced"
+          class="w-40 absolute right-0 mt-2 py-2 bg-white border border-solid border-slate-300 rounded-md shadow-lg z-10"
         >
-          <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-            <span class="text-sm">Change password</span>
+          <li class="px-4 hover-bg-gray-100 cursor-pointer">
+            <span class="text-sm hover:text-yellow-500">Đổi mật khẩu</span>
           </li>
-          <li
-            class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-            @click="logout"
-          >
-            <span class="text-sm">Logout</span>
+          <li class="px-4 hover-bg-gray-100 cursor-pointer" @click="logout">
+            <span class="text-sm hover:text-yellow-500">Đăng xuất</span>
           </li>
         </ul>
       </div>
     </div>
   </div>
+
+  <!-- Hiển thị thông báo -->
+  <div
+    v-if="showNotifications"
+    class="absolute top-16 right-0 w-64 mt-5 mr-5 bg-white border border-solid border-slate-300 rounded-md shadow-lg z-10"
+  >
+    <div class="flex justify-between items-center mb-3 pt-4 mx-4">
+      <span class="text-xl font-semibold">Thông Báo</span>
+      <span class="material-symbols-outlined"> drafts </span>
+    </div>
+    <!-- Duyệt qua danh sách thông báo (tối đa 5 thông báo mới nhất) -->
+    <div class="overflow-auto" style="max-height: 350px">
+      <div v-for="(notification, index) in notifications" :key="index">
+        <div
+          class="border border-solid border-slate-300 hover:bg-gray-200 border-l-0 border-r-0 p-4 cursor-pointer"
+          :class="[index != notifications.length - 1 ? 'border-b-0' : '']"
+        >
+          <div
+            class="flex group"
+            @click="
+              async () => {
+                activeView = true;
+                item = notification.notification;
+                await update(notification.notification._id);
+              }
+            "
+          >
+            <div class="">
+              <div class="flex items-center mb-2">
+                <!-- Sử dụng biểu tượng thư trong ví dụ -->
+                <span class="font-semibold">{{
+                  capitalizeEveryWord(notification.notification.title)
+                }}</span>
+              </div>
+              <div
+                class="text-sm text-gray-600"
+                style="
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;
+                  overflow: hidden;
+                "
+              >
+                {{ capitalizeOneWord(notification.notification.content) }}
+              </div>
+
+              <div class="text-xs mt-3 text-blue-600">
+                {{ formatDate1(notification.notification.dateSent) }}
+              </div>
+            </div>
+            <div
+              class="flex mt-0.5"
+              v-if="notification.notification.status == 'đã gửi'"
+            >
+              <span
+                class="w-3 h-3 border border-solid rounded-full border-yellow-500 shadow-lg bg-yellow-500 transition-transform transform group-hover:scale-125"
+              >
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="flex justify-center">
+      <button class="text-blue-500 text-md py-4" @click="viewAllNotifications">
+        Xem tất cả
+      </button>
+    </div> -->
+  </div>
+  <NotificationDetail
+    v-if="activeView"
+    :item="item"
+    :title="`Thông báo chi tiết`"
+    @cancel="
+      (value) => {
+        activeView = value;
+      }
+    "
+    @submit="create()"
+  />
 </template>
 
 <script>
-import VueLetterAvatar from "vue-letter-avatar";
-
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  Notification,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  formatDate,
+  http_getAll,
+  http_update,
+} from "../../assets/js/imports";
+import NotificationDetail from "../forms/NotificationDetail.vue";
 export default {
-  components: {
-    VueLetterAvatar,
-  },
   data() {
     return {
-      username: sessionStorage.getItem("username"),
+      username: sessionStorage.getItem("owner_name"),
       role: sessionStorage.getItem("role"),
+      // Các thông báo sẽ được lưu trong mảng notifications
+      notifications: [],
+      showNotifications: false,
+      showAdvanced: false,
+      activeView: false,
+      item: {},
     };
+  },
+  components: {
+    NotificationDetail,
+  },
+  computed: {
+    // Số lượng thông báo chưa đọc
+    unreadNotificationCount() {
+      return this.notifications.filter((notification) => notification.unread)
+        .length;
+    },
   },
   methods: {
     logout() {
@@ -85,10 +245,53 @@ export default {
       run_alert(alert_success(`Logout successful.`));
       this.$router.push({ name: "Login" });
     },
+    capitalizeEveryWord(str) {
+      return str
+        .split(" ")
+        .map((i) => i.replace(/\b\w/, (match) => match.toUpperCase()))
+        .join(" ");
+    },
+    formatDate1(value) {
+      return formatDate(value);
+    },
+    capitalizeOneWord(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
     getFirstLetter(name) {
       const lastName = name.trim().split(" ").pop();
       return lastName ? lastName.charAt(0).toUpperCase() : "";
     },
+    // Hiển thị hoặc ẩn thông báo
+    toggleNotifications() {
+      this.showNotifications = !this.showNotifications;
+    },
+    // Đánh dấu tất cả các thông báo là đã đọc
+    markAllNotificationsAsRead() {
+      this.notifications.forEach(
+        (notification) => (notification.unread = false)
+      );
+    },
+    // Xem tất cả thông báo
+    viewAllNotifications() {
+      this.showNotifications = true;
+      this.markAllNotificationsAsRead();
+    },
+    async update(_id) {
+      await http_update(Notification, _id, {});
+      await this.refresh();
+    },
+
+    async refresh() {
+      this.notifications = await http_getAll(Notification);
+      this.notifications = this.notifications.map((i) => ({
+        notification: i._doc,
+        recipientInfo: i.recipientInfo,
+      }));
+      this.notifications = this.notifications.reverse();
+    },
+  },
+  async created() {
+    await this.refresh();
   },
 };
 </script>
@@ -108,5 +311,55 @@ export default {
 
 .initial {
   text-transform: uppercase;
+}
+
+/* Thêm kiểu dáng cho thông báo */
+.notifications {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  z-index: 10;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.notification-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.notification-view-all {
+  font-size: 14px;
+  color: #3498db;
+  cursor: pointer;
+}
+
+.notification-item {
+  margin-bottom: 10px;
+}
+
+.notification-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.notification-content {
+  font-size: 16px;
+  color: #333;
+}
+
+.notification-date {
+  font-size: 14px;
+  color: #777;
 }
 </style>

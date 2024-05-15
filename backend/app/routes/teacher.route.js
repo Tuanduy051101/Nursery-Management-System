@@ -17,5 +17,8 @@ router.route('/:id/diploma/delete')
 router.route('/:id/diploma/add')
     .put(teacher.addDiploma)
 
+router.route('/workTransferHistory')
+    .post(teacher.transferWork)
+
 module.exports = router;
 

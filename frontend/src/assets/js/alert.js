@@ -92,14 +92,15 @@ export const alert_input_1 = async (type = 'text', title = '', inputLabel = '', 
     const result = await Swal.fire({
         title: title,
         input: type,
-        inputLabel: inputLabel,
+        inputLabel: inputLabel == 'Enter the number of records per page.' ? 'Nhập số lượng bản ghi trên mỗi trang' : inputLabel,
         inputAttributes: {
             autocomplete: 'off',
         },
         showConfirmButton: true,
+        confirmButtonColor: 'blue',
         inputValidator: (value) => {
             if (!value) {
-                return 'Missing required fields.';
+                return 'Thiếu trường bắt buộc.';
             }
         }
     });
@@ -107,7 +108,7 @@ export const alert_input_1 = async (type = 'text', title = '', inputLabel = '', 
     if (result.isConfirmed) {
         Toast.fire({
             icon: 'success',
-            title: message || `You have entered: ${result.value}`,
+            title: message || `Bạn đã nhập: ${result.value}`,
             timer: 2000,
         });
     }
@@ -131,14 +132,14 @@ export const alert_remove = async (itemsToDelete, fields, labels, width = '40%')
         },
     });
     const result = await Swal.fire({
-        title: 'Are you sure?',
+        title: 'Bạn có chắc chắn muốn xoá?',
         text: "This action cannot be undone!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: 'Vâng, xoá nó đi!',
+        cancelButtonText: 'Huỷ',
         width: width,
         html: `
               <table class="border-collapse w-full table-auto">

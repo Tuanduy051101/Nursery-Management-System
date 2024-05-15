@@ -9,5 +9,6 @@ router.route('/')
 router.route('/:id')
     .delete(ingredient.delete)
     .get(ingredient.find)
+    .put(ingredient.update)
 module.exports = router;
 

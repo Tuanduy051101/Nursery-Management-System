@@ -1,51 +1,74 @@
 <template>
   <div
     v-if="item?.name"
-    class="border border-solid border-slate-600 rounded-md mb-5"
+    class="border border-solid border-slate-300 rounded-md mb-5"
   >
+    <div class="flex justify-start">
+      <p
+        class="text-lg border flex justify-start border-solid border-t-0 border-l-0 border-slate-300 px-4 py-1.5"
+        style="border-radius: 0% 0% 5px 0%"
+      >
+        Thêm trẻ vào lớp
+      </p>
+    </div>
     <!-- list of children or cdi or receipt -->
     <div class="flex justify-between mx-5 my-5 text-slate-600">
-      <div class="flex items-center text-lg text-slate-300">
+      <div class="flex items-center text-lg text-slate-600">
         <div class="flex items-center">
-          <label for="">Class name:</label>
-          <span class="px-2 py-1 ml-2 text-blue-500">{{ item.name }}</span>
+          <label for="">Tên lớp:</label>
+          <span class="px-2 py-1 ml-2 text-slate-900 capitalize">{{
+            item.name
+          }}</span>
         </div>
         <div class="flex items-center ml-5">
-          <label for="">Number of classes:</label>
-          <span class="px-2 py-1 ml-2 text-blue-500">{{
+          <label for="">Sĩ số lớp:</label>
+          <span class="px-2 py-1 ml-2 text-slate-900">{{
             item.children.length
           }}</span>
         </div>
       </div>
       <div class="flex">
         <div
-          class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
+          class="border border-solid px-4 py-2 border-r-0 cursor-pointer flex items-center"
           :class="
-            actionMenu == 1 ? 'border-2 border-slate-300 text-slate-300' : ''
+            actionMenu == 1
+              ? 'border-2 border-green-500 bg-green-500 text-white'
+              : 'border-slate-300 hover:bg-gray-200 hover:border-gray-200'
           "
           @click="actionMenu = 1"
         >
-          Add many
+          Thêm nhiều trẻ
         </div>
         <div
-          class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
+          class="border border-solid px-4 py-1 cursor-pointer flex items-center"
           :class="
-            actionMenu == 2 ? 'border-2 border-slate-300 text-slate-300' : ''
+            actionMenu == 2
+              ? 'border-2 border-green-500 bg-green-500 text-white'
+              : 'border-slate-300 hover:bg-gray-200 hover:border-gray-200'
           "
           @click="actionMenu = 2"
         >
-          Add auto
+          Thêm tự động
         </div>
       </div>
     </div>
-    <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
+    <div class="border border-solid my-5 border-slate-300 border-b-0"></div>
 
     <div class="flex">
       <!-- table -->
       <div
-        class="flex-1 -mt-5 border border-solid border-t-0 border-b-0 border-l-0 border-slate-600"
+        class="flex-1 -mt-5 border border-solid border-t-0 border-b-0 border-l-0 border-slate-300"
       >
-        <AddMany v-if="actionMenu == 1" :classId="id" @update="refresh" />
+        <AddMany
+          v-if="actionMenu == 1"
+          :classId="id"
+          @update="refresh"
+          @updateAmount="
+            async () => {
+              await refresh();
+            }
+          "
+        />
         <AddAuto v-if="actionMenu == 2" :id="id" />
       </div>
     </div>

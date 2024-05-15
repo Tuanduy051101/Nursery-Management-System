@@ -1,0 +1,22 @@
+1. expo init MyDrawerApp
+2. cd MyDrawerApp
+3. expo install @react-navigation/native @react-navigation/drawer react-native-reanimated react-native-gesture-handler react-native-screens
+4. find babel.config.js
+5. add module.exports = {
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: ['react-native-reanimated/plugin'],
+};
+6. config file
+7. yarn start (test)
+8. if error, yarn add react-native-safe-area-context
+9. yarn start --reset-cache
+10. yarn add react-native-vector-icons
+11. yarn add react-native-paper
+12. yarn add @react-navigation/stack
+13. yarn add react-native-table-component
+14. yarn add @react-navigation/bottom-tabs
+15. yarn add @react-native-community/masked-view
+16. yarn add react-native-chart-kit
+17. yarn add react-native-svg
+
+

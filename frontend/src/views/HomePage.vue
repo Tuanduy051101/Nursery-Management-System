@@ -92,7 +92,7 @@ export default {
       </div>
       <div class="basis-10/12 relative w-11/12">
         <div
-          class="my-5 mr-5 shadow-md rounded-md z-20 border border-solid border-slate-600 border-0.5 print:hidden"
+          class="my-5 mr-5 rounded-md z-20 border border-solid border-slate-300 border-0.5 print:hidden"
         >
           <Navbar />
         </div>
@@ -100,7 +100,7 @@ export default {
           <RouterView></RouterView>
         </div>
         <div
-          class="mr-5 mt-5 rounded-md border border-solid border-slate-600 print:hidden"
+          class="mr-5 mt-5 rounded-md border border-solid border-slate-300 print:hidden"
         >
           <Footer />
         </div>

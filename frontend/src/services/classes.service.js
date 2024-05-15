@@ -22,6 +22,9 @@ class ClassesService {
   async get(id) {
     return (await this.api.get(`/${id}`)).data;
   }
+  async getChildNoneClass(id) {
+    return (await this.api.get(`/${id}/children-none-class`)).data;
+  }
   async update(id, data) {
     return (await this.api.put(`/${id}`, data)).data;
   }

@@ -7,5 +7,19 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      const newUtilities = {
+        '.capitalize': {
+          'text-transform': 'capitalize',
+        },
+        '.first-letter-uppercase': {
+          '&::first-letter': {
+            'text-transform': 'uppercase',
+          },
+        },
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 }

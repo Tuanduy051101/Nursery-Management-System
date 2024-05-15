@@ -1,219 +1,229 @@
 <template>
   <Form @submit="submit" :validation-schema="formSchema" v-slot="{ errors }">
     <div
-      class="fixed top-0 right-0 w-screen h-screen z-50 flex overflow-auto items-center justify-center"
+      class="fixed top-0 right-0 w-screen h-screen z-50 flex items-center justify-center"
     >
-      <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
+      <div class="bg-slate-900 h-screen opacity-70 flex-1 relative"></div>
       <div
-        class="bg-slate-800 mx-5 w-6/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
+        class="bg-white mx-5 w-4/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
         style="min-height: 100px"
       >
         <div
-          class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
+          class="flex flex-row justify-between items-center px-3 py-3 text-slate-900 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
         >
           <span>{{ title }}</span>
           <span
             @click="cancel"
-            class="material-symbols-outlined cursor-pointer text-slate-600 hover:text-slate-300"
+            class="material-symbols-outlined cursor-pointer text-slate-900 hover:text-red-500"
+            title="Đóng"
           >
             close
           </span>
         </div>
-        <div class="flex flex-col my-5 mx-3">
-          <div class="flex flex-row mt-5">
+        <div class="flex flex-col mt-2 mx-3">
+          <div class="flex flex-row">
             <div
-              class="w-2/12 mr-4 flex h-full flex-col items-start justify-center"
+              class="w-full overflow-auto pr-3 py-3"
+              v-show="activeStep == 1"
+              style="max-height: calc(100vh - 250px)"
             >
-              <div
-                v-for="(step, index) in stepList"
-                :key="step.id"
-                class="flex flex-row items-center mb-8 cursor-pointer"
-                @click="activeStep = step.id"
-              >
-                <span
-                  class="h-10 w-10 mr-3 rounded-md flex items-center justify-center"
-                  :class="[
-                    step.id == activeStep
-                      ? 'border border-solid border-slate-300 text-slate-300'
-                      : 'border border-solid border-slate-600 text-slate-600',
-                  ]"
-                  >{{ step.id }}</span
+              <!-- name -->
+              <div class="flex flex-col text-slate-900">
+                <label for="name" class="-mt-2.5 flex items-center"
+                  >Họ và tên<span class="text-red-500 text-3xl ml-0.5 relative"
+                    >*</span
+                  ></label
                 >
-                <span
-                  class=""
-                  :class="[
-                    step.id == activeStep ? 'text-slate-300' : 'text-slate-600',
-                  ]"
-                  >{{ step.name }}</span
-                >
+                <Field
+                  v-model="item.name"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
+                  name="name"
+                  type="text"
+                  placeholder=""
+                  :class="errors.name ? 'border-red-500' : 'border-slate-300'"
+                  autocomplete="off"
+                />
+                <ErrorMessage
+                  name="name"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
+                />
               </div>
-            </div>
-            <div
-              class="border border-solid border-t-0 border-l-0 border-b-0 border-slate-600 mx-4"
-            ></div>
-            <!--! page 1 -->
-            <div class="w-10/12" v-show="activeStep == 1">
-              <div class="flex">
-                <!-- name -->
-                <div class="flex w-6/12 flex-col text-slate-300">
-                  <label for="name" class="mb-1 -mt-2.5 ml-1 flex items-center"
-                    >Name<span
-                      class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <Field
-                    v-model="item.name"
-                    class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                    name="name"
-                    type="text"
-                    placeholder=""
-                    :class="!item.name ? 'border-red-500' : 'border-slate-600'"
+              <!-- gender -->
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Giới tính<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <div class="flex items-center -mt-2 -mb-2">
+                  <input
+                    type="radio"
+                    id="male"
+                    name="gender"
+                    value="true"
+                    v-model="item.gender"
+                    class="mr-2"
+                    :checked="item.gender == 'true'"
                   />
-                  <ErrorMessage
-                    name="name"
-                    class="text-red-500 mt-1 ml-1 text-sm"
+                  <label for="male" class="mr-4 mt-1">Nam</label>
+
+                  <input
+                    type="radio"
+                    id="female"
+                    name="gender"
+                    value="false"
+                    v-model="item.gender"
+                    class="mr-2"
+                    :checked="item.gender == 'false'"
                   />
+                  <label for="female" class="mt-1">Nữ</label>
                 </div>
-                <!-- gender -->
-                <div class="flex w-6/12 flex-col text-slate-300 ml-3">
-                  <label for="" class="mb-1 -mt-2.5 ml-1 flex items-center"
-                    >Gender<span
-                      class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
-                      >*</span
-                    ></label
-                  >
-                  <FSelect
-                    class=""
-                    @update:modelValue="(value) => (item.gender = value)"
-                    @update="(value) => (runGet = value)"
-                    :options="[
-                      {
-                        _id: true,
-                        name: 'nam',
-                      },
-                      {
-                        _id: false,
-                        name: 'nữ',
-                      },
-                    ]"
-                    :modelValue="`nam`"
-                  />
-                </div>
+                <p v-if="!item.gender" class="text-red-500 mt-2 ml-0.5 text-sm">
+                  Vui lòng chọn giới tính.
+                </p>
               </div>
               <!-- phone -->
-              <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Phone<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Số điện thoại<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.phone"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="phone"
                   style=""
                   type="text"
                   placeholder=""
-                  :class="
-                    !item.phone || errors.phone
-                      ? 'border-red-500'
-                      : 'border-slate-600'
-                  "
+                  :class="errors.phone ? 'border-red-500' : 'border-slate-300'"
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="phone"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
               <!-- email -->
-              <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >E-mail<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >E-mail<span class="text-slate-900 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.email"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="email"
                   style=""
                   type="text"
                   placeholder=""
-                  :class="
-                    !item.email || errors.email
-                      ? 'border-red-500'
-                      : 'border-slate-600'
-                  "
+                  :class="errors.email ? 'border-red-500' : 'border-slate-300'"
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="email"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
+              <LocationPicker
+                :checks="checks"
+                :province="item.province"
+                :district="item.district"
+                :ward="item.ward"
+                @province-selected="(value) => (item.province = value)"
+                @district-selected="(value) => (item.district = value)"
+                @ward-selected="(value) => (item.ward = value)"
+              />
               <!-- address -->
-              <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Address<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 flex items-center"
+                  >Địa chỉ thường trú<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <Field
                   v-model="item.address"
-                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                  class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900"
                   name="address"
-                  id="address"
+                  as="textarea"
                   style=""
-                  type="text"
                   placeholder=""
                   :class="
-                    !item.address || errors.address
-                      ? 'border-red-500'
-                      : 'border-slate-600'
+                    errors.address ? 'border-red-500' : 'border-slate-300'
                   "
+                  autocomplete="off"
                 />
                 <ErrorMessage
                   name="address"
-                  class="text-red-500 mt-1 ml-1 text-sm"
+                  class="text-red-500 mt-2 ml-0.5 text-sm"
                 />
               </div>
               <!-- Relationship -->
-              <div class="flex flex-col text-slate-300">
-                <label for="" class="mb-1 mt-2.5 ml-1 flex items-center"
-                  >Relationship<span
-                    class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+              <div class="flex flex-col text-slate-900">
+                <label for="" class="mt-2.5 ml-1 flex items-center"
+                  >Mối quan hệ<span
+                    class="text-red-500 text-3xl relative ml-0.5"
                     >*</span
                   ></label
                 >
                 <FSelect
-                  @update:modelValue="(value) => (item.relationship = value)"
+                @update:modelValue="
+                    async (value) => {
+                      if (value != 'other') {
+                        item.relationship = value;
+                      } else {
+                        item.relationship = await alert_input_1(
+                          'text',
+                          '',
+                          'Nhập vào mối quan hệ với trẻ',
+                        );
+                      }
+                    }
+                  "
                   @update="(value) => (runGet = value)"
+                  :model-value="item.relationship"
                   :options="[
                     { _id: 'bố', name: 'bố' },
                     { _id: 'mẹ', name: 'mẹ' },
                     { _id: 'anh trai', name: 'anh trai' },
                     { _id: 'chị gái', name: 'chị gái' },
                     { _id: 'người giám hộ', name: 'người giám hộ' },
+                    { _id: 'other', name: 'khác' },
                   ]"
-                  :modelValue="`bố`"
-                  :class="
-                    !item.relationship ? 'border-red-500' : 'border-slate-600'
-                  "
+                  :modeAdd="modeAdd"
+                  @click="modeAdd = false"
                 />
-                <span
-                  v-if="!item.relationship"
-                  class="text-red-500 mt-1 ml-1 text-sm"
-                  >Please select a value !</span
-                >
               </div>
               <button
-                @click=""
-                class="text-slate-300 border border-solid border-green-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:bg-green-500 mt-5 hover:text-slate-100"
+                @click="
+                  () => {
+                    checks = {
+                      province: false,
+                      district: false,
+                      ward: false,
+                    };
+                    if (
+                      errors.phone &&
+                      ((errors.email && item.email) || !item.email) &&
+                      item.province &&
+                      item.district &&
+                      item.ward
+                    ) {
+                      submit();
+                    }
+                  }
+                "
+                class="text-white border border-solid px-3 py-1.5 flex items-center justify-center rounded-md mt-5 hover:shadow-lg hover:shadow-yellow-500/50"
+                :class="
+                  buttonName == 'Add'
+                    ? 'border-blue-500 bg-blue-500'
+                    : 'border-yellow-500 bg-yellow-500'
+                "
               >
-                Add
+                {{ buttonName == "Add" ? "Thêm" : "Cập nhật" }}
               </button>
             </div>
           </div>
@@ -229,6 +239,8 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import FSelect from "./Select.vue";
 import BAdd from "../buttons/Add.vue";
 import Account from "../../services/account.service";
+import LocationPicker from "../../components/forms/LocationPicker.vue";
+import { alert_input_1 } from "../../assets/js/alert.js";
 
 export default {
   components: {
@@ -237,6 +249,7 @@ export default {
     ErrorMessage,
     FSelect,
     BAdd,
+    LocationPicker,
   },
   props: {
     title: {
@@ -263,6 +276,10 @@ export default {
       type: String,
       default: "",
     },
+    buttonName: {
+      type: String,
+      default: "Add",
+    },
   },
   emits: ["cancel", "submit"],
   watch: {
@@ -273,16 +290,16 @@ export default {
   },
   data() {
     const formSchema = yup.object().shape({
-      name: yup.string().required("Name must have a value !"),
+      name: yup.string().required("Đây là trường bắt buộc."),
       phone: yup
         .string()
-        .required("Phone number must have a value !")
-        .matches(/((09|03|07|08|05)+([0-9]{8})\b)/g, "Invalid phone number !"),
-      email: yup
-        .string()
-        .required("Email must have a value !")
-        .email("Incorrect e-mail !"),
-      address: yup.string().required("Address must have a value !"),
+        .required("Đây là trường bắt buộc.")
+        .matches(
+          /((09|03|07|08|05)+([0-9]{8})\b)/g,
+          "Số điện thoại không hợp lệ."
+        ),
+      email: yup.string().email("Địa chỉ mail không hợp lệ."),
+      address: yup.string().required("Đây là trường bắt buộc."),
     });
     return {
       formSchema,
@@ -302,21 +319,21 @@ export default {
       showPassword: false,
       accounts: [],
       checkUser: true,
+      modeAdd: true,
+      checks: {
+        province: true,
+        district: true,
+        ward: true,
+      },
     };
   },
   methods: {
+    alert_input_1,
     cancel() {
       this.$emit("cancel", false);
     },
     submit() {
-      if (
-        this.item.name.length > 0 &&
-        this.item.phone.length > 0 &&
-        this.item.email.length > 0 &&
-        this.item.address.length > 0
-      ) {
-        this.$emit("submit");
-      }
+      this.$emit("submit");
     },
   },
   created() {},

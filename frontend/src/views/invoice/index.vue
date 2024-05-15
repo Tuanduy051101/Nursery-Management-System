@@ -1,6 +1,6 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md">
-    <div class="flex justify-end mx-5 my-5 text-slate-600">
+  <div class="border border-solid border-slate-300 rounded-md">
+    <!-- <div class="flex justify-end mx-5 my-5 text-slate-600">
       <div
         class="border border-solid border-slate-600 px-4 py-1 hover:text-slate-300 cursor-pointer flex items-center"
         :class="
@@ -21,8 +21,8 @@
       >
         Payment
       </div>
-    </div>
-    <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
+    </div> -->
+    <!-- <div class="border border-solid my-5 border-slate-600 border-b-0"></div> -->
     <!-- Header -->
     <ReceiptL v-if="actionPage == 1" />
     <PaymentL v-if="actionPage == 2 " />

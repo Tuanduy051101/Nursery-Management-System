@@ -1,8 +1,8 @@
 <template>
   <div class="flex-col my-5 mx-5">
     <div class="flex">
-      <label for="" class="text-slate-300 flex items-center mr-5"
-        >Number of children:</label
+      <label for="" class="text-slate-900 flex items-center mr-5"
+        >Số lượng trẻ:</label
       >
       <input
         type="number"
@@ -10,11 +10,11 @@
         id=""
         placeholder=""
         v-model="itemAdd.amountChildren"
-        class="w-50 bg-inherit border border-solid text-slate-300 border-slate-600 focus:border-slate-300 rounded-md py-1.5 px-2"
+        class="w-50 bg-inherit border border-solid text-slate-900 border-slate-300 focus:border-slate-900 rounded-md py-1.5 px-2"
       />
     </div>
-    <div class="flex mt-5">
-      <label for="" class="text-slate-300 flex items-center mr-5">Age:</label>
+    <!-- <div class="flex mt-5">
+      <label for="" class="text-slate-900 flex items-center mr-5">Độ tuổi:</label>
       <div class="flex space-x-10">
         <label
           v-for="(item, index) in checkboxes"
@@ -26,15 +26,15 @@
             v-model="item.checked"
             class="form-checkbox -mt-2 mx-2"
           />
-          <span class="text-slate-300">{{ item.label }}</span>
+          <span class="text-slate-900">{{ item.label }}</span>
         </label>
       </div>
-    </div>
+    </div> -->
     <div class="flex mt-5 justify-start">
       <span
         @click="create"
-        class="border border-solid px-5 py-2 rounded-md border-green-900 hover:border-green-500 cursor-pointer text-slate-600 hover:text-slate-300"
-        >Add</span
+        class="border border-solid px-5 py-2 rounded-md border-blue-500 bg-blue-500 cursor-pointer text-white hover:shadow-lg hover:shadow-yellow-500/50"
+        >Thêm</span
       >
     </div>
   </div>

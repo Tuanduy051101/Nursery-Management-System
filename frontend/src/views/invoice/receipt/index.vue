@@ -1,82 +1,188 @@
 <template>
   <!-- Header -->
-  <p class="text-slate-300 text-lg mx-5 mt-5">Search Filter</p>
-  <div class="flex justify-center items-center my-5">
+  <p class="text-blue-700 text-base mx-5 mt-5">Bộ lọc tìm kiếm</p>
+  <div class="flex justify-center items-center my-5 mx-5">
     <FSelect
-      class="w-full ml-5 text-md"
-      :options="sYear"
-      :modelValue="` Select school year`"
-      v-model="schoolYearValue"
+      v-if="isToken"
+      class="w-full text-md mr-5"
+      :options="childcareCenterList"
+      :modelValue="temp_childcareCenter"
+      :title="const_childcareCenter"
+      @update:modelValue="
+        async (value) => {
+          childcareCenterValue = value;
+          await filtered1();
+          schoolYearList = await http_getAll(SchoolYear);
+          schoolYearList = schoolYearList.filter(
+            (i) => i.childcareCenter._id == childcareCenter
+          );
+        }
+      "
+      @refresh="
+        async () => {
+          childcareCenterValue = const_childcareCenter;
+          await filtered1();
+        }
+      "
+      :showClose="true"
     />
     <FSelect
-      class="w-full ml-5 text-md"
-      :options="grade"
-      :modelValue="` Select grade`"
-      v-model="gradeValue"
-    />
-    <FSelect
-      v-if="gradeValue.length != 0 && schoolYearValue.length != 0"
-      class="w-full ml-5 text-md"
-      :options="classes"
-      :modelValue="` Select class`"
-      v-model="classValue"
+      class="w-full text-md"
+      :options="schoolYearList"
+      :modelValue="const_sy"
+      :title="const_sy"
+      @update:modelValue="
+        async (value) => {
+          schoolYearValue = value;
+          await filtered1();
+        }
+      "
+      @refresh="
+        async () => {
+          schoolYearValue = const_sy;
+          await filtered1();
+        }
+      "
+      :showClose="true"
     />
     <FSelect
       class="w-full mx-5 text-md"
-      :options="[
-        { _id: true, name: 'Paid' },
-        { _id: false, name: 'Unpaid' },
-      ]"
-      :modelValue="` Select status`"
-      v-model="statusValue"
+      :options="gradeList"
+      :modelValue="const_gr"
+      :title="const_gr"
+      @update:modelValue="
+        async (value) => {
+          gradeValue = value;
+          await filtered1();
+        }
+      "
+      @refresh="
+        async () => {
+          gradeValue = const_gr;
+          await filtered1();
+        }
+      "
+      :showClose="true"
+    />
+    <FSelect
+      class="w-full text-md"
+      :options="statusList"
+      :modelValue="const_st"
+      :title="const_st"
+      @update:modelValue="
+        (value) => {
+          statusValue = value;
+          filtered1();
+        }
+      "
+      @refresh="
+        async () => {
+          statusValue = const_st;
+          await filtered1();
+        }
+      "
+      :showClose="true"
     />
   </div>
-  <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
+  <div class="border border-solid my-5 border-slate-300 border-b-0"></div>
   <div class="flex items-center justify-between my-5 mx-5">
     <div class="w-6/12 flex">
       <FSelect
-        class="w-20"
-        :options="[
-          { _id: 5, name: 5 },
-          { _id: 10, name: 10 },
-          { _id: 20, name: 20 },
-          { _id: 30, name: 30 },
-          { _id: 40, name: 40 },
-          { _id: 50, name: 50 },
-        ]"
+        style="width: 105px"
+        :options="option_entry"
         :modelValue="entryValue"
-        v-model="entryValue"
+        :title="`Số bản ghi`"
+        @update:modelValue="
+          async (value) => {
+            currentPage = 1;
+            if (value != 'other') {
+              entryValue = value;
+            } else {
+              entryValue = await alert_input_1(
+                'number',
+                '',
+                'Enter the number of records per page.'
+              );
+            }
+          }
+        "
       />
-      <FSelect
-        class="w-28 mx-5"
-        :options="[
-          { _id: 0, name: 'auto' },
-          { _id: 1, name: 'fixed' },
-        ]"
-        :modelValue="`auto`"
-        v-model="mode"
+      <FSearch
+        class="flex-1 mx-5"
+        @search="
+          (value) => {
+            searchText = value;
+            currentPage = 1;
+          }
+        "
+        :title="searchWith.name"
+        @searchWith="(value) => (searchWith = value)"
+        :optionSearch="searchOption"
       />
     </div>
-    <div class="flex-1 flex">
-      <FSearch class="flex-1 mx-5" v-model="searchText" />
-      <BAdd @click="activeAdd = true" />
+    <div class="flex-1 flex flex-row-reverse">
+      <button
+        @click="activeEdit = !activeEdit"
+        class="border border-solid ml-5 border-yellow-500 bg-yellow-500 px-5 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+      >
+        Cập nhật
+      </button>
+      <button
+        @click="activeAdd = true"
+        class="border border-solid h-10 ml-5 border-blue-500 bg-blue-500 px-5 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+      >
+        Thêm
+      </button>
     </div>
   </div>
   <Table
     :items="setPages"
     :fields="[
-      'Children',
-      'Class',
-      'Total',
-      'Start Day',
-      'End Day',
-      'Make Date',
-      'Status',
+      'Mã trẻ',
+      'Tên trẻ',
+      'Lớp học',
+      'Tổng tiền',
+      'Ngày bắt đầu thu',
+      'Ngày kết thúc thu',
+      'Trạng thái',
     ]"
-    :labels="['child', 'class', 'total', 'dateStart', 'dateEnd', 'datePerForm']"
+    :labels="
+      activeEdit
+        ? [
+            'children_id',
+            'child_name',
+            'class_name',
+            'total_format',
+            'startDate_format',
+            'endDate_format',
+            'status',
+          ]
+        : [
+            'children_id',
+            'child_name',
+            'class_name',
+            'total_format',
+            'startDate_format',
+            'endDate_format',
+            'statusValue',
+          ]
+    "
     :mode="mode"
-    @deleteItem="(value) => (deleteValue = value)"
-    :actionList="actionList"
+    :startRow="startRow"
+    :show-action="[true, activeEdit ? true : false, true]"
+    @delete="(value) => remove(value)"
+    @edit="
+      async (value) => {
+        item = items.filter((item) => item._id == value);
+        item = item[0];
+        edit();
+      }
+    "
+    :action-list="[
+      role == 'kế toán' ? 'Receipt-accounting.view' : 'Receipt.view',
+    ]"
   />
   <Pagination
     :numberOfPages="numberOfPages"
@@ -88,355 +194,348 @@
   <FormReceipt
     v-if="activeAdd"
     :item="itemAdd"
-    :title="`Add A New Receipt`"
-    :placeholder="`Add a new Receipt`"
-    @cancel="(value) => (activeAdd = value)"
+    :title="`Thêm phiếu thu học phí`"
+    @cancel="
+      (value) => {
+        activeAdd = value;
+        itemAdd = {
+          schoolYear: '',
+          dateStart: '',
+          dateEnd: '',
+        };
+      }
+    "
     @submit="create()"
   />
 </template>
 
-<script>
-import BAdd from "../../../components/buttons/Add.vue";
-import BEdit from "../../../components/buttons/Edit.vue";
-import BDelete from "../../../components/buttons/Delete.vue";
-import BCancel from "../../../components/buttons/Cancel.vue";
-import FSelect from "../../../components/forms/Select.vue";
-import FSearch from "../../../components/forms/Search.vue";
-import Table from "../../../components/TableReceipt.vue";
-import Pagination from "../../../components/Pagination.vue";
-import FormReceipt from "../../../components/forms/FormReceipt.vue";
-import Assignment from "../../../services/assignment.service";
-import SchoolYear from "../../../services/sYear.service";
-import Receipt from "../../../services/receipt.service";
-import Grade from "../../../services/grade.service";
-import Classes from "../../../services/classes.service";
-import ASuccess from "../../../components/alerts/Success.vue";
-import Swal from "sweetalert2";
-import { FormatMoney } from "format-money-js";
+<script setup>
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // Swal
+  Swal,
+  // components
+  Navbar,
+  Sidebar,
+  Footer,
+  Login,
+  BAdd,
+  BEdit,
+  BDelete,
+  BCancel,
+  FSelect,
+  FSearch,
+  Table,
+  Pagination,
+  FormOne,
+  ASuccess,
+  FormChildren,
+  FormTeacher,
+  FormReceipt,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  alert_input_1,
+  alert_remove,
+  // https
+  http_getAll,
+  http_getOne,
+  http_deleteOne,
+  http_create,
+  http_update,
+  // format money
+  formatCurrencyVND,
+  convertToWords,
+  // format date-time
+  formatDate,
+  formatDateTime,
+  formatDateTime_2,
+  AddMany,
+  AddAuto,
+  ChildcareCenter,
+  verifyToken,
+} from "../../../assets/js/imports";
+//
+import {
+  items,
+  items_cp,
+  item,
+  background,
+  searchText,
+  searchWith,
+  searchOption,
+  entryValue,
+  typing_entry,
+  option_entry,
+  mode,
+  option_mode,
+  numberOfPages,
+  totalRow,
+  startRow,
+  endRow,
+  currentPage,
+  activeAdd,
+  activeEdit,
+  deleteValue,
+  setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  ageList,
+  ageValue,
+  filter_age,
+  genderList,
+  genderValue,
+  filter_gender,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
+  const_ps,
+  const_dl,
+  positionList,
+  positionValue,
+  diplomaList,
+  diplomaValue,
+  const_st,
+  statusList,
+  statusValue,
+  resetFilter,
+  reset,
+  const_childcareCenter,
+  childcareCenterValue,
+  childcareCenterList,
+} from "../../../components/common/index.js";
 
-export default {
-  components: {
-    BAdd,
-    BEdit,
-    BDelete,
-    BCancel,
-    FSelect,
-    FSearch,
-    Table,
-    Pagination,
-    FormReceipt,
-    ASuccess,
-  },
-  data() {
-    return {
-      // data
-      items: [],
-      item: {},
-      sYear: [],
-      grade: [],
-      classes: [],
-      // search
-      searchText: "",
-      // entry
-      entryValue: 10,
-      // table
-      mode: "auto",
-      // pagination
-      numberOfPages: 1,
-      totalRow: 0,
-      startRow: 0,
-      endRow: 0,
-      currentPage: 1,
-      // add
-      activeAdd: false,
-      itemAdd: {
-        schoolYear: "",
-        grade: "",
-        dateStart: "",
-        dateEnd: "",
-        total: 0,
-      },
-      background: "rgb(51 65 85 / var(--tw-bg-opacity))",
-      // delete
-      deleteValue: "",
-      actionPage: 1,
-      statusValue: null,
-      schoolYearValue: "",
-      gradeValue: "",
-      classValue: "",
-      actionList: ["Receipt.view"],
+const itemAdd = ref({
+  schoolYear: "",
+  dateStart: "",
+  dateEnd: "",
+});
+
+const role = ref("");
+role.value = sessionStorage.getItem("role");
+
+searchOption.value = [
+  { _id: "children_id", name: "Tìm kiếm theo mã trẻ" },
+  { _id: "_child_name", name: "Tìm kiếm theo tên trẻ" },
+];
+
+const create = async () => {
+  const result = await http_create(Receipt, itemAdd.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    refresh();
+    run_alert(alert_success(result.message));
+    activeAdd.value = false;
+    itemAdd.value = {
+      schoolYear: "",
+      dateStart: "",
+      dateEnd: "",
     };
-  },
-  watch: {
-    async deleteValue() {
-      await this.get();
-      await this.delete();
-      await this.refresh();
-    },
-    async schoolYearValue() {
-      if (this.gradeValue.length != 0 && this.schoolYearValue.length != 0) {
-        await this.getAll();
-        await this.formatTable();
-        await this.getAllClasses();
-      }
-    },
-    async gradeValue() {
-      if (this.gradeValue.length != 0 && this.schoolYearValue.length != 0) {
-        await this.getAll();
-        await this.formatTable();
-        await this.getAllClasses();
-      }
-    },
-    async classValue() {
-      await this.getAll();
-      await this.formatTable();
-    },
-    async statusValue() {
-      await this.getAll();
-      await this.formatTable();
-    },
-  },
-  computed: {
-    toString() {
-      return this.items.map((item, index) => {
-        return [item.name].join("");
-      });
-    },
-
-    filter() {
-      return this.items.filter((item, index) => {
-        return this.toString[index].includes(
-          this.searchText.toLocaleLowerCase()
-        );
-      });
-    },
-
-    filtered() {
-      if (!this.searchText) {
-        this.totalRow = this.items.length;
-        return this.items;
-      } else {
-        this.totalRow = this.filter.length;
-        return this.filter;
-      }
-    },
-
-    setNumberOfPages() {
-      return Math.ceil(this.filtered.length / this.entryValue);
-    },
-
-    setPages() {
-      if (this.setNumberOfPages == 0) this.numberOfPages = 1;
-      else this.numberOfPages = this.setNumberOfPages;
-
-      this.startRow = (this.currentPage - 1) * this.entryValue + 1;
-      this.endRow = this.currentPage * this.entryValue;
-
-      return this.filtered.filter((item, index) => {
-        return (
-          index + 1 > (this.currentPage - 1) * this.entryValue &&
-          index + 1 <= this.currentPage * this.entryValue
-        );
-      });
-    },
-  },
-  methods: {
-    async getAll() {
-      try {
-        this.items = await Receipt.getAll();
-        if (this.schoolYearValue.length > 0) {
-          this.items = this.items.filter((value, index) => {
-            return value.classes.schoolYear == this.schoolYearValue;
-          });
-        }
-        if (this.gradeValue.length > 0) {
-          this.items = this.items.filter((value, index) => {
-            return value.classes.grade == this.gradeValue;
-          });
-        }
-        if (this.classValue.length != 0) {
-          this.items = this.items.filter((value, index) => {
-            return value.classes._id == this.classValue;
-          });
-        }
-        if (this.statusValue != null) {
-          this.items = this.items.filter((value, index) => {
-            return value.status == this.statusValue;
-          });
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async get() {
-      try {
-        this.item = await Receipt.get(this.deleteValue);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    formatDate(value) {
-      let date = new Date(value);
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      return day + "-" + month + "-" + year;
-    },
-
-    formatMoney(money) {
-      const fm = new FormatMoney({
-        decimals: 0,
-        append: true,
-      });
-
-      const temp = fm.from(money, { symbol: "vnđ" });
-
-      return temp;
-    },
-
-    setDate() {
-      let date = new Date();
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      return day + "-" + month + "-" + year;
-    },
-
-    formatTable() {
-      this.items = this.items.map((item, index) => {
-        return {
-          _id: item._id,
-          child: item.child.name,
-          class: item.classes.name,
-          schoolYear: item.classes.schoolYear,
-          grade: item.classes.grade,
-          dateStart: this.formatDate(item.dateStart),
-          dateEnd: this.formatDate(item.dateEnd),
-          datePerForm: item.datePerForm,
-          total: this.formatMoney(item.total),
-          status: item.status,
-        };
-      });
-    },
-
-    async create() {
-      try {
-        const grade = await Grade.get(this.itemAdd.grade);
-        for (let value of grade.classes) {
-          for (let value1 of value.children) {
-            await Receipt.create({
-              classes: value._id,
-              child: value1._id,
-              status: false,
-              datePerForm: this.setDate(),
-              dateStart: this.itemAdd.dateStart,
-              dateEnd: this.itemAdd.dateEnd,
-              total: this.itemAdd.total,
-            });
-          }
-        }
-        this.activeAdd = false;
-        await this.refresh();
-        Swal.fire({
-          background: this.background,
-          color: "white",
-          text: "Successfull add",
-          icon: "success",
-          timer: 2000,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async delete() {
-      const option = Swal.fire({
-        background: this.background,
-        color: "white",
-        icon: "warning",
-        html:
-          "<p>I want to delete the invoice of" +
-          ' "' +
-          '<span class="text-blue-500 text-lg">' +
-          this.item.child.name +
-          "</span>" +
-          '"' +
-          " class " +
-          ' "' +
-          '<span class="text-blue-500 text-lg">' +
-          this.item.classes.name +
-          "</span>" +
-          '"' +
-          "</p>",
-        showCancelButton: true,
-        showConfirmButton: true,
-        confirmButtonText: "Delete",
-        confirmButtonColor: "red",
-        reverseButtons: true,
-      });
-
-      if ((await option).isConfirmed) {
-        try {
-          await Receipt.delete(this.deleteValue);
-          Swal.fire({
-            background: this.background,
-            color: "white",
-            text: "Successfull delete",
-            icon: "success",
-            timer: 2000,
-          });
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    },
-
-    async getAllSYear() {
-      try {
-        this.sYear = await SchoolYear.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAllGrade() {
-      try {
-        this.grade = await Grade.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async getAllClasses() {
-      try {
-        this.classes = await Classes.getAll();
-        console.log("starting");
-        this.classes = this.classes.filter((value, index) => {
-          return (
-            value.schoolYear._id == this.schoolYearValue &&
-            value.grade._id == this.gradeValue
-          );
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async refresh() {
-      await this.getAllSYear();
-      await this.getAllGrade();
-      await this.getAll();
-      await this.formatTable();
-    },
-  },
-  async created() {
-    await this.refresh();
-  },
+  }
 };
+
+const edit = async () => {
+  const result = await http_update(Receipt, item.value._id, item.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    refresh();
+    activeEdit.value = false;
+  }
+};
+
+const remove = async (item) => {
+  const deleteList = items.value.filter((item) => item.checked);
+  if (deleteList.length != 0) {
+    const isRemove = await alert_remove(
+      deleteList,
+      ["Tên trẻ", "Lớp học", "Tổng số tiền", "Trạng thái"],
+      ["child_name", "class_name", "total_format", "status_format"],
+      "50%"
+    );
+    deleteList.forEach(async (item) => {
+      if (isRemove) {
+        const result = await http_deleteOne(Receipt, item._id);
+      }
+    });
+    if (isRemove) {
+      run_alert(alert_success("Đã xoá thành công."));
+      refresh();
+    }
+  }
+  if (deleteList.length == 0) {
+    const isRemove = await alert_remove(
+      [item],
+      ["Tên trẻ", "Lớp học", "Tổng số tiền", "Trạng thái"],
+      ["child_name", "class_name", "total_format", "status_format"],
+      "50%"
+    );
+    if (isRemove) {
+      const result = await http_deleteOne(Receipt, item._id);
+      if (!result.error) {
+        run_alert(alert_success(result.message));
+        refresh();
+      }
+    }
+  }
+};
+
+const refresh = async () => {
+  items.value = await http_getAll(Receipt);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    child_name: item.child.name,
+    children_id: item.child._id,
+    _child_name: item.child.name,
+    class_name: item.classes.name,
+    grade_id: item.classes.grade._id,
+    schoolYear_id: item.classes.schoolYear._id,
+    childcareCenterId: item.classes.schoolYear.childcareCenter,
+    total_format: formatCurrencyVND(item.total),
+    startDate_format: formatDate(item.dateStart),
+    endDate_format: formatDate(item.dateEnd),
+    datePerForm_format:
+      item.datePerForm != "chưa thanh toán"
+        ? formatDate(item.datePerForm)
+        : "chưa thanh toán",
+    status_format: item.status == "true" ? "đã thanh toán" : "chưa thanh toán",
+    statusValue: item.status == "true" ? "đã thanh toán" : "chưa thanh toán",
+  }));
+  items.value = items.value.filter(
+    (i) => i.classes.schoolYear.childcareCenter == childcareCenter.value
+  );
+};
+
+const refreshFilter = async () => {
+  items.value = await http_getAll(Receipt);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    child_name: item.child.name,
+    children_id: item.child._id,
+    _child_name: item.child.name,
+    class_name: item.classes.name,
+    grade_id: item.classes.grade._id,
+    schoolYear_id: item.classes.schoolYear._id,
+    childcareCenterId: item.classes.schoolYear.childcareCenter,
+    total_format: formatCurrencyVND(item.total),
+    startDate_format: formatDate(item.dateStart),
+    endDate_format: formatDate(item.dateEnd),
+    datePerForm_format:
+      item.datePerForm != "chưa thanh toán"
+        ? formatDate(item.datePerForm)
+        : "chưa thanh toán",
+    status_format: item.status == "true" ? "đã thanh toán" : "chưa thanh toán",
+    statusValue: item.status == "true" ? "đã thanh toán" : "chưa thanh toán",
+  }));
+};
+
+const filtered = async () => {
+  await refresh();
+  filters();
+  currentPage.value = 1;
+};
+
+const filtered1 = async () => {
+  await refreshFilter();
+  filters();
+  currentPage.value = 1;
+};
+
+const temp_childcareCenter = ref("");
+const isToken = ref("");
+const childcareCenter = ref(sessionStorage.getItem("owner_childcareCenter"));
+const childcareCenterName = ref(
+  sessionStorage.getItem("owner_childcareCenterName")
+);
+
+onBeforeMount(async () => {
+  isToken.value = await verifyToken();
+  reset();
+  await refresh();
+  childcareCenterValue.value = childcareCenter.value;
+  temp_childcareCenter.value = childcareCenterName.value;
+  items.value = items.value.filter(
+    (i) => i.classes.schoolYear.childcareCenter == childcareCenter.value
+  );
+  childcareCenterList.value = await http_getAll(ChildcareCenter);
+  backup_items();
+  gradeList.value = await http_getAll(Grade);
+  schoolYearList.value = await http_getAll(SchoolYear);
+  schoolYearList.value = schoolYearList.value.filter(
+    (i) => i.childcareCenter._id == childcareCenter.value
+  );
+  statusList.value = [
+    {
+      _id: "true",
+      name: "đã thanh toán",
+    },
+    {
+      _id: "false",
+      name: "chưa thanh toán",
+    },
+  ];
+});
 </script>

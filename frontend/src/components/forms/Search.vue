@@ -2,18 +2,18 @@
   <div
     ref="selectRef"
     class="relative text-lg w-full flex items-center text-slate-300 flex-row-reverse border border-solid rounded-md"
-    :class="[activeSearch ? 'border-slate-300' : 'border-slate-600']"
+    :class="[activeSearch ? 'border-slate-900' : 'border-slate-300']"
   >
     <span
       v-if="activeSearch || modelValue.length > 0"
-      class="absolute -top-2 left-0 _bg-inherit text-slate-300"
-      style="font-size: 12px"
+      class="absolute -top-2 left-0 bg-white text-slate-900 bold"
+      style="font-size: 13px"
       >{{ title }}</span
     >
     <input
       type="text"
-      placeholder="Search"
-      class="w-full py-2 pl-2 bg-inherit text-slate-300 placeholder:text-base focus:border-slate-300"
+      placeholder="Tìm kiếm"
+      class="w-full py-2 pl-2 bg-inherit text-slate-900 placeholder:text-base focus:border-slate-300 outline-none"
       @input="
         $emit('search', $event.target.value),
           (modelValue = $event.target.value);
@@ -25,17 +25,23 @@
     />
     <div
       v-if="activeSelect"
-      class="absolute top-0 mt-14 w-full rounded-md bg-slate-800 border border-solid border-slate-300 text-slate-300 overflow-auto flex flex-col items-start justify-start z-10"
+      class="absolute top-0 mt-14 w-full rounded-md bg-white border border-solid border-slate-900 overflow-auto flex flex-col items-start justify-start z-10"
     >
+      <span class="mt-2"></span>
       <span
         v-for="(option, index) in optionSearch"
         :key="index"
         @click="[$emit('searchWith', option)]"
-        class="hover:text-slate-300 text-md cursor-pointer w-full py-1 px-2"
-        :class="option.name == title ? 'text-slate-300' : 'text-slate-600'"
+        class="text-sm cursor-pointer w-full px-2"
+        :class="
+          option.name == title
+            ? 'text-green-500'
+            : 'text-slate-900 hover:text-yellow-500'
+        "
       >
         {{ option.name }}
       </span>
+      <span class="mt-0.5"></span>
     </div>
   </div>
 </template>

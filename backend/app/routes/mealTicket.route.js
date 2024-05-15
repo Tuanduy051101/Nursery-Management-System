@@ -9,5 +9,7 @@ router.route('/')
 router.route('/:id')
     .delete(mealTicket.delete)
     .get(mealTicket.find)
+    .put(mealTicket.update)
+    
 module.exports = router;
 

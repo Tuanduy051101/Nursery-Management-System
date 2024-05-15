@@ -24,7 +24,7 @@ const generateToken = (user) => {
         username: user.name
     };
     const option = {
-        expiresIn: '24h',
+        expiresIn: '12h',
     };
     const token = jwt.sign(payload, secretKey, option);
     return token;

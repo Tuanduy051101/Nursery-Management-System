@@ -1,23 +1,47 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md">
+  <div class="border border-solid border-slate-300 rounded-md">
     <!-- Header -->
-    <p class="text-slate-300 text-lg mx-5 mt-5">Search Filter</p>
+    <p class="text-blue-700 text-base mx-5 mt-5">Bộ lọc tìm kiếm</p>
     <div class="flex justify-between items-center my-5 mx-5">
+      <FSelect
+        v-if="isToken"
+        class="w-full text-md mr-5"
+        :options="childcareCenterList"
+        :modelValue="temp_childcareCenter"
+        :title="const_childcareCenter"
+        @update:modelValue="
+          async (value) => {
+            childcareCenterValue = value;
+            await filtered1();
+            schoolYearList = await http_getAll(SchoolYear);
+            schoolYearList = schoolYearList.filter(
+              (i) => i.childcareCenter._id == value
+            );
+          }
+        "
+        @refresh="
+          async () => {
+            childcareCenterValue = const_childcareCenter;
+            await filtered1();
+          }
+        "
+        :showClose="true"
+      />
       <FSelect
         class="w-full text-md"
         :options="schoolYearList"
         :modelValue="const_sy"
         :title="const_sy"
         @update:modelValue="
-          (value) => {
+          async (value) => {
             schoolYearValue = value;
-            filtered();
+            await filtered1();
           }
         "
         @refresh="
           async () => {
             schoolYearValue = const_sy;
-            await filtered();
+            await filtered1();
           }
         "
         :showClose="true"
@@ -28,15 +52,15 @@
         :modelValue="const_gr"
         :title="const_gr"
         @update:modelValue="
-          (value) => {
+          async (value) => {
             gradeValue = value;
-            filter_grade(gradeValue);
+            await filtered1();
           }
         "
         @refresh="
           async () => {
             gradeValue = const_gr;
-            await filtered();
+            await filtered1();
           }
         "
         :showClose="true"
@@ -47,28 +71,28 @@
         :modelValue="const_tf"
         :title="const_tf"
         @update:modelValue="
-          (value) => {
+          async (value) => {
             tuitionFeesValue = value;
-            filter_tuitionFees(tuitionFeesValue);
+            await filtered1();
           }
         "
         @refresh="
           async () => {
             tuitionFeesValue = const_tf;
-            await filtered();
+            await filtered1();
           }
         "
         :showClose="true"
       />
     </div>
-    <div class="border border-solid my-5 border-slate-600 border-b-0"></div>
+    <div class="border border-solid my-5 border-slate-300 border-b-0"></div>
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
         <FSelect
           style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
-          :title="`Record`"
+          :title="`Số bản ghi`"
           @update:modelValue="
             async (value) => {
               currentPage = 1;
@@ -83,13 +107,13 @@
             }
           "
         />
-        <FSelect
+        <!-- <FSelect
           class="w-28 mx-5"
           :options="option_mode"
           :modelValue="`auto`"
           :title="`Display`"
           v-model="mode"
-        />
+        /> -->
       </div>
       <div class="flex-1 flex">
         <FSearch
@@ -109,10 +133,12 @@
     </div>
     <Table
       :items="setPages"
-      :fields="['Tuition fees', 'Grade', 'School year', 'money']"
-      :labels="['tuitionFees', 'grade', 'schoolYear', 'money']"
+      :fields="['Tên khoản thu', 'Khối học', 'Năm học', 'Mức thu']"
+      :labels="['tuitionFees', 'gradeName', 'schoolYear_name', 'money']"
       :mode="mode"
       :startRow="startRow"
+      :show-action="[false, true, true]"
+      :wrap-list="[true, false, false, false]"
       @delete="(value) => remove(value)"
       @edit="
         async (value) => {
@@ -136,7 +162,7 @@
   <FormOne
     v-if="activeAdd"
     :item="itemAdd"
-    :title="`Add a new collection rates`"
+    :title="`Thêm mức thu mới`"
     :name="`CollectionRates`"
     :placeholder="`Add a new collection rates`"
     @cancel="(value) => (activeAdd = value)"
@@ -152,7 +178,7 @@
     v-if="activeEdit"
     :item="item"
     :name="`CollectionRates`"
-    :title="`Edit a collection rates`"
+    :title="`Sửa thông tin mức thu`"
     :buttonName="`Edit`"
     :disabled="true"
     @cancel="(value) => (activeEdit = value)"
@@ -247,6 +273,8 @@ import {
   // format money
   formatCurrencyVND,
   convertToWords,
+  ChildcareCenter,
+  verifyToken,
 } from "../../../../assets/js/imports";
 //
 import {
@@ -290,6 +318,11 @@ import {
   const_ge,
   const_ag,
   filters,
+  resetFilter,
+  reset,
+  const_childcareCenter,
+  childcareCenterValue,
+  childcareCenterList,
 } from "../../../../components/common/index.js";
 
 const itemAdd = ref({
@@ -300,7 +333,7 @@ const itemAdd = ref({
   schoolYear: "",
 });
 
-searchOption.value = [{ _id: "money", name: "Search by money" }];
+searchOption.value = [{ _id: "money", name: "Tìm kiếm theo mức thu" }];
 
 const create = async () => {
   const result = await http_create(CollectionRates, itemAdd.value);
@@ -308,7 +341,7 @@ const create = async () => {
   if (!result.error) {
     run_alert(alert_success(result.message));
     activeAdd.value = false;
-    refresh();
+    await refresh();
   }
   backup_items();
 };
@@ -329,7 +362,7 @@ const remove = async (item) => {
   if (deleteList.length != 0) {
     const isRemove = await alert_remove(
       deleteList,
-      ["Tuition fees", "Grade", "School year", "Money"],
+      ["Tên khoản thu", "Khối học", "Năm học", "Mức thu"],
       ["tuitionFees", "grade", "schoolYear", "money"]
     );
     deleteList.forEach(async (item) => {
@@ -338,14 +371,14 @@ const remove = async (item) => {
       }
     });
     if (isRemove) {
-      run_alert(alert_success("Successfully deleted."));
+      run_alert(alert_success("Đã xoá thành công."));
       refresh();
     }
   }
   if (deleteList.length == 0) {
     const isRemove = await alert_remove(
       [item],
-      ["Tuition fees", "Grade", "School year", "Money"],
+      ["Tên khoản thu", "Khối học", "Năm học", "Mức thu"],
       ["tuitionFees", "grade", "schoolYear", "money"]
     );
     if (isRemove) {
@@ -365,25 +398,72 @@ const refresh = async () => {
     ...item,
     checked: false,
     money: formatCurrencyVND(item.money),
-    grade: item.grade.name,
-    schoolYear: item.schoolYear.name,
+    gradeName: item.grade.name,
+    schoolYear_name: item.schoolYear.name,
     tuitionFees: item.tuitionFees.name,
     grade_id: item.grade._id,
     schoolYear_id: item.schoolYear._id,
     tuitionFees_id: item.tuitionFees._id,
+    childcareCenterId: item.schoolYear.childcareCenter,
+  }));
+  console.log('x', items.value);
+  console.log(childcareCenterValue.value);
+  items.value = items.value.filter(
+    (i) => i.schoolYear.childcareCenter == childcareCenterValue.value
+  );
+  console.log('y', items.value);
+};
+
+const refreshFilter = async () => {
+  items.value = await http_getAll(CollectionRates);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    money: formatCurrencyVND(item.money),
+    gradeName: item.grade.name,
+    schoolYear_name: item.schoolYear.name,
+    tuitionFees: item.tuitionFees.name,
+    grade_id: item.grade._id,
+    schoolYear_id: item.schoolYear._id,
+    tuitionFees_id: item.tuitionFees._id,
+    childcareCenterId: item.schoolYear.childcareCenter,
   }));
 };
 
 const filtered = async () => {
   await refresh();
   filters();
+  currentPage.value = 1;
 };
 
+const filtered1 = async () => {
+  await refreshFilter();
+  filters();
+  currentPage.value = 1;
+};
+
+const temp_childcareCenter = ref("");
+const isToken = ref("");
+const childcareCenter = ref(sessionStorage.getItem("owner_childcareCenter"));
+const childcareCenterName = ref(
+  sessionStorage.getItem("owner_childcareCenterName")
+);
+
 onBeforeMount(async () => {
+  isToken.value = await verifyToken();
+  reset();
+  childcareCenterValue.value = childcareCenter.value;
+  temp_childcareCenter.value = childcareCenterName.value;
   await refresh();
-  backup_items();
-  gradeList.value = await http_getAll(Grade);
+  items.value = items.value.filter(
+    (i) => i.schoolYear.childcareCenter == childcareCenterValue.value
+  );
+  childcareCenterList.value = await http_getAll(ChildcareCenter);
   schoolYearList.value = await http_getAll(SchoolYear);
+  gradeList.value = await http_getAll(Grade);
+  schoolYearList.value = schoolYearList.value.filter(
+    (i) => i.childcareCenter._id == childcareCenter.value
+  );
   tuitionFeesList.value = await http_getAll(TuitionFees);
 });
 </script>

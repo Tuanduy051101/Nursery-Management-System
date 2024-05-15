@@ -1,12 +1,12 @@
 <template>
   <!-- Header -->
-  <p class="text-slate-300 text-lg mx-5 mt-5">Search Filter</p>
+  <p class="text-blue-900 text-base mx-5 mt-5">Bộ lọc tìm kiếm</p>
   <div class="flex justify-center items-center my-5 mx-5">
-    <FSelect
+    <!-- <FSelect
       class="w-full mr-5 text-md"
       :options="ageList"
       :title="const_ag"
-      :modelValue="ageValue"
+      :modelValue="const_ag"
       @update:modelValue="
         async (value) => {
           if (value != 'other') {
@@ -18,7 +18,7 @@
               '',
               `Enter the child's age.`
             );
-          filtered();
+          await filtered();
         }
       "
       @refresh="
@@ -28,28 +28,47 @@
         }
       "
       :showClose="true"
-    />
+    /> -->
     <FSelect
       class="w-full text-md"
       :options="genderList"
       :title="const_ge"
       :modelValue="const_ge"
       @update:modelValue="
-        (value) => {
+        async (value) => {
           genderValue = value;
-          filtered();
+          await filtered();
         }
       "
       @refresh="
-        () => {
+        async () => {
           genderValue = const_ge;
-          filtered();
+          await filtered();
+        }
+      "
+      :showClose="true"
+    />
+    <FSelect
+      class="w-full text-md ml-5"
+      :options="statusChildList"
+      :title="const_statusChild"
+      :modelValue="temp_statusChild"
+      @update:modelValue="
+        async (value) => {
+          statusChildValue = value;
+          await filtered();
+        }
+      "
+      @refresh="
+        async () => {
+          statusChildValue = const_statusChild;
+          await filtered();
         }
       "
       :showClose="true"
     />
   </div>
-  <div class="border border-solid border-slate-600 border-t-0"></div>
+  <div class="border border-solid border-slate-300 border-t-0"></div>
   <!--  -->
   <div class="flex items-center justify-between my-5 mx-5">
     <div class="w-6/12 flex">
@@ -57,7 +76,7 @@
         style="width: 105px"
         :options="option_entry"
         :modelValue="entryValue"
-        :title="`Record`"
+        :title="`Số bản ghi`"
         @update:modelValue="
           async (value) => {
             currentPage = 1;
@@ -73,13 +92,13 @@
           }
         "
       />
-      <FSelect
+      <!-- <FSelect
         class="w-28 mx-5"
         :options="option_mode"
         :modelValue="`auto`"
         :title="`Display`"
         v-model="mode"
-      />
+      /> -->
     </div>
     <div class="flex-1 flex">
       <FSearch
@@ -106,8 +125,14 @@
   </div>
   <Table
     :items="setPages"
-    :fields="['Children', 'Gender', 'Birthday', 'Parents']"
-    :labels="['name', 'gender_format', 'birthday_format', 'parent_name']"
+    :fields="[
+      'Mã trẻ',
+      'Tên trẻ',
+      'Giới tính',
+      'Tên phụ huynh',
+      'Số điện thoại',
+    ]"
+    :labels="['_id', 'name', 'gender_format', 'parent_name', 'parent_phone']"
     :mode="mode"
     :start-row="startRow"
     :show-action="[true, false, false]"
@@ -265,6 +290,11 @@ import {
   positionValue,
   diplomaList,
   diplomaValue,
+  resetFilter,
+  const_statusChild,
+  statusChildValue,
+  statusChildList,
+  reset,
 } from "../../../../components/common/index.js";
 
 const props = defineProps({
@@ -274,10 +304,9 @@ const props = defineProps({
   },
 });
 
-searchOption.value = [
-  { _id: "name", name: "Search by class name" },
-  { _id: "child_name", name: "Search by child's name" },
-];
+const emit = defineEmits(["updateAmount"]);
+
+searchOption.value = [{ _id: "name", name: "Tìm kiếm theo tên trẻ" }];
 
 const create = async () => {
   try {
@@ -287,7 +316,9 @@ const create = async () => {
     if (result.error) run_alert(alert_error(result.message));
     if (!result.error) {
       run_alert(alert_success(result.message));
-      refresh();
+      await refresh();
+      resetFilter();
+      emit("updateAmount");
     }
   } catch (error) {
     console.log(error);
@@ -303,6 +334,10 @@ const refresh = async () => {
       birthday_format: formatDate(item.birthday),
       gender_format: item.gender == "true" ? "nam" : "nữ",
       parent_name: item.parentDetails[0].name,
+      parent_phone: item.parentDetails[0].phone,
+      childcareCenterId: item.childcareCenter,
+      age_format:
+        new Date().getFullYear() - new Date(item.birthday).getFullYear(),
     }));
   } catch (error) {
     console.log(error);
@@ -312,10 +347,16 @@ const refresh = async () => {
 const filtered = async () => {
   await refresh();
   filters();
+  currentPage.value = 1;
 };
 
+const temp_statusChild = ref("");
+
 onBeforeMount(async () => {
+  reset();
   await refresh();
-  backup_items();
+  statusChildValue.value = "đang học";
+  temp_statusChild.value = "đang học";
+  filters();
 });
 </script>

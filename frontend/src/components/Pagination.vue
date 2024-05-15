@@ -1,12 +1,14 @@
 <template>
   <div class="flex justify-between items-center py-5 px-2">
-    <p class="text-slate-600 text-md hover:text-slate-300">
-      Showing {{ totalRow == 0 ? 0 : startRow }} to
-      {{ endRow > totalRow ? totalRow : endRow }} of {{ totalRow }} entries
+    <p class="text-slate-900 text-md hover:text-slate-900">
+      Hiển thị {{ totalRow == 0 ? 0 : startRow }} đến
+      {{ endRow > totalRow ? totalRow : endRow }} trong tổng số
+      {{ totalRow }} mục
     </p>
+
     <div class="flex items-center text-md">
       <span
-        class="rounded-md text-slate-600 w-8 h-8 flex items-center justify-center border border-solid border-slate-600 cursor-pointer hover:border-slate-300 hover:text-slate-300"
+        class="rounded-md text-slate-900 w-8 h-8 flex items-center justify-center border border-solid border-slate-900 cursor-pointer hover:border-gray-200 hover:bg-gray-200"
         @click="updatePrevPage(currentPage)"
       >
         <Prev class="" />
@@ -20,8 +22,8 @@
           @click="updateCurrentPage(numberOfPage)"
           :class="[
             index === currentPage - 1
-              ? 'text-slate-300 border-slate-300 border border-solid'
-              : 'text-slate-600 border border-solid hover:text-slate-300 hover:border-slate-600',
+              ? ' border-green-500 border border-solid bg-green-500 text-white'
+              : 'text-slate-900 border border-solid border-slate-900 hover:border-gray-200 hover:bg-gray-200',
           ]"
         >
           {{ numberOfPage }}
@@ -37,8 +39,8 @@
             @click="updateCurrentPage(numberOfPage)"
             :class="[
               index === currentPage - 1
-                ? 'text-slate-300 border-slate-300 border border-solid'
-                : 'text-slate-600 border border-solid hover:text-slate-300 hover:border-slate-600',
+                ? ' border-green-500 border border-solid bg-green-500 text-white'
+              : 'text-slate-900 border border-solid border-slate-900 hover:border-gray-200 hover:bg-gray-200',
             ]"
           >
             {{ numberOfPage }}
@@ -59,18 +61,15 @@
             v-if="numberOfPages > 6 && numberOfPage > numberOfPages - 3"
             class="rounded-md w-8 h-8 flex items-center justify-center cursor-pointer my-1 mx-2"
             @click="updateCurrentPage(numberOfPage)"
-            :class="[
-              index === currentPage - 1
-                ? 'text-slate-300 border-slate-300 border border-solid'
-                : 'text-slate-600 border border-solid hover:text-slate-300 hover:border-slate-600',
-            ]"
+            :class="[index === currentPage - 1 ? ' border-green-500 border border-solid bg-green-500 text-white'
+              : 'text-slate-900 border border-solid border-slate-900 hover:border-gray-200 hover:bg-gray-200']"
           >
             {{ numberOfPage }}
           </span>
         </div>
       </div>
       <span
-        class="rounded-md text-slate-600 w-8 h-8 flex items-center justify-center border border-solid border-slate-600 cursor-pointer hover:border-slate-300 hover:text-slate-300"
+        class="rounded-md text-slate-900 w-8 h-8 flex items-center justify-center border border-solid border-slate-900 cursor-pointer hover:border-gray-200 hover:bg-gray-200"
         @click="updateNextPage(currentPage)"
       >
         <Next class="" />
@@ -94,7 +93,7 @@ export default {
     },
     currentPage: {
       type: Number,
-      default: 2,
+      default: 1,
     },
     numberOfPages: {
       type: Number,

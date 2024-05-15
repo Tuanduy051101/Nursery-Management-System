@@ -3,18 +3,37 @@
   <div
     class="fixed top-0 bottom-0 right-0 w-screen h-screen z-50 flex items-center justify-center"
   >
-    <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
     <div
-      class="bg-slate-800 mx-5 w-4/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
+      v-if="activeDishes"
+      class="bg-slate-900 h-screen opacity-70 flex-1 relative"
+    ></div>
+    <Dishes
+      v-if="activeDishes"
+      class="bg-white absolute w-10/12"
+      @submit="
+        (value) => {
+          activeDishes = false;
+          itemAdd.dishes = value;
+        }
+      "
+      @cancel="activeDishes = false"
+    />
+    <div
+      v-if="!activeDishes"
+      class="bg-slate-900 h-screen opacity-70 flex-1 relative"
+    ></div>
+    <div
+      v-if="!activeDishes"
+      class="bg-white mx-5 w-6/12 absolute rounded-md shadow-xl border border-solid border-slate-300"
       style="min-height: 100px; max-height: 100vh"
     >
       <div
-        class="flex flex-row justify-between items-center px-3 py-3 text-slate-300 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
+        class="flex flex-row justify-between items-center px-3 py-3 text-slate-900 border border-solid border-slate-300 border-l-0 border-r-0 border-t-0 text-lg"
       >
         <span>{{ title }}</span>
         <span
           @click="cancel"
-          class="material-symbols-outlined cursor-pointer text-slate-600 hover:text-slate-300"
+          class="material-symbols-outlined cursor-pointer text-slate-900 hover:text-red-500"
         >
           close
         </span>
@@ -22,7 +41,7 @@
       <div class="flex flex-col my-5 mx-3">
         <div class="flex flex-row mt-5">
           <div
-            class="w-1/12 mr-4 flex h-full flex-col items-start justify-center"
+            class="w-4/12 mr-4 flex h-full flex-col items-start justify-center"
           >
             <div
               v-for="(step, index) in stepList"
@@ -34,103 +53,81 @@
                 class="h-10 w-10 mr-3 rounded-md flex items-center justify-center"
                 :class="[
                   step.id == activeStep
-                    ? 'border border-solid border-slate-300 text-slate-300'
-                    : 'border border-solid border-slate-600 text-slate-600',
+                    ? 'border border-solid border-green-500 text-white bg-green-500'
+                    : 'border border-solid border-slate-900 text-slate-900 hover:border-gray-200 hover:bg-gray-200',
                 ]"
                 >{{ step.id }}</span
               >
               <span
-                class=""
+                class="whitespace-nowrap"
                 :class="[
-                  step.id == activeStep ? 'text-slate-300' : 'text-slate-600',
+                  step.id == activeStep ? 'text-slate-900' : 'text-slate-900',
                 ]"
                 >{{ step.name }}</span
               >
             </div>
           </div>
           <div
-            class="border border-solid border-t-0 border-l-0 border-b-0 border-slate-600 mx-4"
+            class="border border-solid border-t-0 border-l-0 border-b-0 border-slate-300 mx-4"
           ></div>
           <!--! page 1 -->
           <div class="w-11/12" v-show="activeStep == 1">
             <!-- name -->
-            <div class="flex flex-col text-slate-300">
-              <label for="name" class="mb-1 -mt-2.5 ml-1 flex items-center"
-                >Date<span class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <div class="flex flex-col text-slate-700">
+              <label for="name" class="-mt-2.5 flex items-center"
+                >Ngày<span class="text-red-500 text-3xl relative ml-0.5"
                   >*</span
                 ></label
               >
               <input
-                v-model="item.date"
-                class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
+                v-model="itemAdd.date"
+                class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-900 border-slate-300"
                 type="date"
                 placeholder=""
-                :class="!item.date ? 'border-red-500' : 'border-slate-600'"
               />
-              <span v-if="!item.date" class="text-red-500 mt-1 ml-1 text-sm">
-                Date must have a value !
+              <span v-if="!itemAdd.date" class="text-red-500 mt-1 ml-1 text-sm">
+                Đây là trường bắt buộc.
               </span>
             </div>
-            <!-- timeStart -->
-            <div class="flex flex-col text-slate-300">
-              <label for="name" class="mb-1 mt-2.5 ml-1 flex items-center"
-                >Start time<span
-                  class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <div class="flex flex-col text-slate-900">
+              <label for="" class="mt-2.5 mb-2 flex items-center"
+                >Buổi<span class="text-red-500 text-3xl relative ml-0.5"
                   >*</span
                 ></label
               >
-              <input
-                v-model="item.timeStart"
-                class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                type="time"
-                placeholder=""
-                :class="!item.timeStart ? 'border-red-500' : 'border-slate-600'"
+              <FSelect
+                @update:modelValue="(value) => (itemAdd.session = value)"
+                :options="sessions"
+                :modelValue="``"
+                class="border-slate-300 -mt-2.5"
               />
               <span
-                v-if="!item.timeStart"
-                class="text-red-500 mt-1 ml-1 text-sm"
+                v-if="!itemAdd.session"
+                class="text-red-500 mt-2 ml-0.5 text-sm"
+                >Đây là trường bắt buộc.</span
               >
-                Start time must have a value !
-              </span>
-            </div>
-            <!-- timeEnd -->
-            <!-- timeStart -->
-            <div class="flex flex-col text-slate-300">
-              <label for="name" class="mb-1 mt-2.5 ml-1 flex items-center"
-                >End time<span
-                  class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
-                  >*</span
-                ></label
-              >
-              <input
-                v-model="item.timeEnd"
-                class="bg-inherit rounded-md px-2 py-1.5 border border-solid focus:border-slate-300"
-                type="time"
-                placeholder=""
-                :class="!item.timeEnd ? 'border-red-500' : 'border-slate-600'"
-              />
-              <span v-if="!item.timeEnd" class="text-red-500 mt-1 ml-1 text-sm">
-                End time must have a value !
-              </span>
             </div>
             <!-- grade -->
-            <div class="flex flex-col text-slate-300">
-              <label for="name" class="mb-1 mt-2.5 ml-1 flex items-center"
-                >Grade<span
-                  class="text-red-500 text-3xl mt-2.5 relative -ml-0.5"
+            <div class="flex flex-col text-slate-900">
+              <label for="name" class="mt-2.5 flex items-center"
+                >Khối học<span class="text-red-500 text-3xl relative ml-0.5"
                   >*</span
                 ></label
               >
               <div class="">
-                <input
-                  v-model="item.grade[0].checked"
-                  class="mr-2"
-                  type="checkbox"
-                  placeholder=""
-                  name="mam"
-                />
-                <label for="" class="mr-4">{{ item.grade[0].name }}</label>
-                <input
+                <div class="" v-for="(value, index) in itemAdd.grade">
+                  <input
+                    v-model="itemAdd.grade[index].checked"
+                    class="mr-2"
+                    type="checkbox"
+                    placeholder=""
+                    name="mam"
+                  />
+                  <label for="" class="mr-4">{{
+                    itemAdd.grade[index].name
+                  }}</label>
+                </div>
+                <!-- <input
                   v-model="item.grade[1].checked"
                   class="mr-2"
                   type="checkbox"
@@ -145,17 +142,17 @@
                   placeholder=""
                   name="la"
                 />
-                <label for="">{{ item.grade[2].name }}</label>
+                <label for="">{{ item.grade[2].name }}</label> -->
               </div>
               <span
                 v-if="
-                  item.grade[0].checked == false &&
-                  item.grade[1].checked == false &&
-                  item.grade[2].checked == false
+                  itemAdd.grade[0].checked == false &&
+                  itemAdd.grade[1].checked == false &&
+                  itemAdd.grade[2].checked == false
                 "
-                class="text-red-500 mt-1 ml-1 text-sm"
+                class="text-red-500 mt-2 ml-0.5 text-sm"
               >
-                Grade must have a value !
+                Đây là trường bắt buộc.
               </span>
             </div>
           </div>
@@ -166,57 +163,51 @@
             v-show="activeStep == 2"
           >
             <!-- dish -->
-            <div
-              class="flex flex-col text-slate-300 mr-2 mb-4"
-              v-for="(value, index) in item.dish"
-            >
+            <div class="flex flex-col text-slate-900 mr-2 mb-4">
               <div class="flex justify-between">
-                <label for="" class="mb-4 ml-1 flex items-center"
-                  >Dish {{ index + 1 }}
-                </label>
-                <div class="">
-                  <span
-                    @click="addIngredient()"
-                    class="material-symbols-outlined text-slate-700 hover:text-slate-300 cursor-pointer mr-2"
-                  >
-                    add
-                  </span>
-                  <span
-                    @click="removeIngredient(index)"
-                    class="material-symbols-outlined text-slate-700 hover:text-slate-300 cursor-pointer"
-                  >
-                    remove
-                  </span>
-                </div>
+                <label for="" class="flex items-center"
+                  >Món ăn<span class="text-red-500 text-3xl relative ml-0.5"
+                    >*</span
+                  ></label
+                >
               </div>
-              <!-- <FSelect
-                class="border-slate-600"
-                @click="showSearchAdvanced = true"
-                v-model="item.dish[index].name"
-              /> -->
               <input
-                class="bg-inherit border border-solid border-slate-600 focus:border-slate-300 rounded-md py-1.5 px-2"
+                class="bg-inherit border border-solid border-slate-300 focus:border-slate-900 rounded-md py-1.5 px-2"
                 type="text"
-                @click="showSearchAdvanced = true"
-                v-model="item.dish[index].name"
+                @focus="activeDishes = true"
               />
-              <SelectAdvantaced
-                v-if="showSearchAdvanced"
-                @showSearchAdvanced="(value) => (showSearchAdvanced = value)"
-                @addItem="
-                  (value, value1) => (
-                    (item.dish[index].id = value),
-                    (item.dish[index].name = value1)
-                  )
-                "
-              />
+              <span
+                v-if="!itemAdd.dishes.length"
+                class="text-red-500 mt-2 ml-0.5 text-sm"
+                >Đây là trường bắt buộc.</span
+              >
+
+              <div class="mt-2 flex flex-col" v-if="itemAdd.dishes.length > 0">
+                <span
+                  v-for="(value, index) in itemAdd.dishes"
+                  class="text-slate-900 ml-0.5 text-md"
+                  >{{ index + 1 }}. {{ value.name }}</span
+                >
+              </div>
+            </div>
+            <div class="flex flex-col text-slate-900">
+              <label for="" class="mt-2.5 flex items-center"
+                >Ghi chú<span class="text-black text-3xl relative ml-0.5"
+                  >*</span
+                ></label
+              >
+              <textarea
+                v-model="itemAdd.note"
+                class="bg-inherit overflow-auto border border-solid rounded-md p-2 border-slate-300 focus:border-slate-900"
+                style="outline: none; height: 50px"
+              ></textarea>
             </div>
             <!-- Button Add -->
             <button
-              @click="submit()"
-              class="text-slate-300 border border-solid border-green-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:bg-green-500 mt-5 hover:text-slate-100"
+              @click.prevent="$emit('submit')"
+              class="text-white border border-solid border-blue-500 bg-blue-500 px-3 py-1.5 flex items-center justify-center rounded-md hover:shadow-lg mt-5 hover:shadow-yellow-500/50"
             >
-              Add
+              Thêm
             </button>
           </div>
         </div>
@@ -226,20 +217,15 @@
         >
           <span
             v-if="activeStep > 1 && activeStep <= stepList.length"
-            class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
+            class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-900 text-slate-900 hover:border-gray-200 hover:bg-gray-200 cursor-pointer"
             @click="activeStep = activeStep - 1"
-            ><span class="material-symbols-outlined flex items-center mr-2">
-              navigate_before </span
-            >Previous</span
+            >Trước</span
           >
           <span
             v-if="activeStep >= 1 && activeStep < stepList.length"
-            class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-600 text-slate-600 hover:border-slate-300 hover:text-slate-300 cursor-pointer"
+            class="flex items-center px-5 py-1.5 rounded-md border border-solid border-slate-900 text-slate-900 hover:border-gray-200 hover:bg-gray-200 cursor-pointer"
             @click="activeStep = activeStep + 1"
-            >Next
-            <span class="material-symbols-outlined flex items-center ml-2">
-              navigate_next
-            </span>
+            >Kế tiếp
           </span>
         </div>
       </div>
@@ -260,6 +246,8 @@ import Position from "../../services/position.service";
 import Diploma from "../../services/diploma.service";
 import Dish from "../../services/dish.service";
 import SelectAdvantaced from "../../views/mealTicket/meal/SelectAdvanced.vue";
+import { Session, http_getAll } from "../../assets/js/imports";
+import Dishes from "../../components/common/dishes.vue";
 
 export default {
   components: {
@@ -272,13 +260,14 @@ export default {
     Table,
     Pagination,
     SelectAdvantaced,
+    Dishes,
   },
   props: {
     title: {
       type: String,
       required: true,
     },
-    item: {
+    itemAdd: {
       type: Object,
       default: {},
     },
@@ -310,15 +299,17 @@ export default {
       stepList: [
         {
           id: 1,
-          name: "",
+          name: "Thông tin khẩu phần ăn",
         },
         {
           id: 2,
-          name: "",
+          name: "Thông tin món ăn",
         },
       ],
       activeStep: 1,
       showSearchAdvanced: false,
+      sessions: [],
+      activeDishes: false,
     };
   },
   methods: {
@@ -330,21 +321,21 @@ export default {
     },
     submit() {
       if (
-        !this.item.date ||
-        !this.item.timeStart ||
-        !this.item.timeEnd ||
-        !this.item.dish[0].id ||
-        (this.item.grade[0].checked == false &&
-          this.item.grade[1].checked == false &&
-          this.item.grade[2].checked == false)
+        !this.itemAdd.date ||
+        !this.itemAdd.timeStart ||
+        !this.itemAdd.timeEnd ||
+        !this.itemAdd.dish[0].id ||
+        (this.itemAdd.grade[0].checked == false &&
+          this.itemAdd.grade[1].checked == false &&
+          this.itemAdd.grade[2].checked == false)
       ) {
       } else {
-        this.$emit("submit", this.item);
+        this.$emit("submit", this.itemAdd);
       }
     },
 
     updateStepList() {
-      if (this.item.dish.length > 1) {
+      if (this.itemAdd.dish.length > 1) {
         for (var i = 0; i < this.item.dish - 1; i++) {
           this.stepList.push({
             id: i + 3,
@@ -359,7 +350,7 @@ export default {
       //   id: this.stepList[this.stepList.length - 1].id + 1,
       //   name: "",
       // });
-      this.item.dish.push({
+      this.itemAdd.dish.push({
         id: "",
       });
     },
@@ -385,8 +376,19 @@ export default {
     },
   },
   async created() {
-    this.updateStepList();
-    await this.getAllDish();
+    this.sessions = await http_getAll(Session);
+    console.log(this.sessions);
+    const childcareCenter = sessionStorage.getItem("owner_childcareCenter");
+    this.sessions = this.sessions.filter((i) =>
+      i.childcareCenter.some((j) => j._id == childcareCenter)
+    );
+    console.log(this.sessions);
+    this.sessions = this.sessions.map((i) => ({
+      _id: i._id,
+      name: i.name + "_" + i.startTime + "_" + i.endTime,
+    }));
+    console.log("chay ne");
+    console.log(this.sessions);
   },
 };
 </script>

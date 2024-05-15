@@ -1,12 +1,12 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md">
+  <div class="border border-solid border-slate-300 rounded-md">
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
         <FSelect
           style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
-          :title="`Record`"
+          :title="`Số bản ghi`"
           @update:modelValue="
             async (value) => {
               currentPage = 1;
@@ -21,13 +21,13 @@
             }
           "
         />
-        <FSelect
+        <!-- <FSelect
           class="w-28 mx-5"
           :options="option_mode"
           :modelValue="`auto`"
           :title="`Display`"
           v-model="mode"
-        />
+        /> -->
       </div>
       <div class="flex-1 flex">
         <FSearch
@@ -47,7 +47,7 @@
     </div>
     <Table
       :items="setPages"
-      :fields="['Tuition fees']"
+      :fields="['Tên khoản thu']"
       :labels="['name']"
       :mode="mode"
       :startRow="startRow"
@@ -58,6 +58,7 @@
           activeEdit = true;
         }
       "
+      :show-action="[false, true, true]"
     />
     <Pagination
       :numberOfPages="numberOfPages"
@@ -70,7 +71,7 @@
   <FormOne
     v-if="activeAdd"
     :item="itemAdd"
-    :title="`Add a new tuition fees`"
+    :title="`Thêm khoản thu mới`"
     :placeholder="`Add a new tuition fees`"
     @cancel="(value) => (activeAdd = value)"
     @submit="create()"
@@ -78,7 +79,7 @@
   <FormOne
     v-if="activeEdit"
     :item="item"
-    :title="`Edit a tuition fees`"
+    :title="`Sửa thông tin khoản thu`"
     :buttonName="`Edit`"
     @cancel="(value) => (activeEdit = value)"
     @submit="edit()"
@@ -189,13 +190,14 @@ import {
   activeEdit,
   deleteValue,
   setPages,
+  reset,
 } from "../../../../components/common/index.js";
 
 const itemAdd = ref({
   name: "",
 });
 
-searchOption.value = [{ _id: "name", name: "Search by name" }];
+searchOption.value = [{ _id: "name", name: "Tìm kiếm theo tên khoản thu" }];
 
 const create = async () => {
   const result = await http_create(TuitionFees, itemAdd.value);
@@ -220,19 +222,19 @@ const edit = async () => {
 const remove = async (item) => {
   const deleteList = items.value.filter((item) => item.checked);
   if (deleteList.length != 0) {
-    const isRemove = await alert_remove(deleteList, ["TuitionFees"], ["name"]);
+    const isRemove = await alert_remove(deleteList, ["Tên khoản thu"], ["name"]);
     deleteList.forEach(async (item) => {
       if (isRemove) {
         const result = await http_deleteOne(TuitionFees, item._id);
       }
     });
     if (isRemove) {
-      run_alert(alert_success("Successfully deleted."));
+      run_alert(alert_success("Đã xoá thành cồng."));
       refresh();
     }
   }
   if (deleteList.length == 0) {
-    const isRemove = await alert_remove([item], ["TuitionFees"], ["name"]);
+    const isRemove = await alert_remove([item], ["Tên khoản thu"], ["name"]);
     if (isRemove) {
       const result = await http_deleteOne(TuitionFees, item._id);
       if (!result.error) {
@@ -252,6 +254,7 @@ const refresh = async () => {
 };
 
 onBeforeMount(async () => {
+  reset();
   refresh();
 });
 </script>

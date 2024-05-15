@@ -13,6 +13,9 @@ class AccountService {
   async signin(data) {
     return (await this.api.post("/signin", data)).data;
   }
+  async verifyToken(data) {
+    return (await this.api.post("/verifyToken", data)).data;
+  }
   async deleteAll() {
     return (await this.api.delete("/")).data;
   }

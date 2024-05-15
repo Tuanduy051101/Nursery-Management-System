@@ -7,7 +7,7 @@ exports.create = async (req, res, next) => {
         if (!name) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
         const check = await TuitionFees.exists({ name });
@@ -15,14 +15,14 @@ exports.create = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists.'
+                message: 'Khoản thu đã tồn tại.'
             })
         }
 
         const document = await TuitionFees.create({ name });
         return res.send({
             error: false,
-            message: 'Succesfully created.'
+            message: 'Đã tạo thành công.'
         })
     } catch (error) {
         return next(Error(500, 'Error saving'));
@@ -41,7 +41,10 @@ exports.findAll = async (req, res, next) => {
 exports.delete = async (req, res, next) => {
     try {
         const result = await TuitionFees.findByIdAndDelete(req.params.id);
-        res.send(result);
+        res.send({
+            error: false,
+            message: 'Đã xoá thành công',
+        });
     } catch (error) {
         return next(Error(500, 'Error deleting document'));
     }
@@ -66,7 +69,7 @@ exports.update = async (req, res, next) => {
         if (!name) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
         const check = await TuitionFees.exists({ name });
@@ -74,13 +77,13 @@ exports.update = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists.'
+                message: 'Khoản thu đã tồn tại.'
             })
         }
         await TuitionFees.findByIdAndUpdate(_id, { name });
         return res.send({
             error: false,
-            message: 'Succesfully updated.'
+            message: 'Đã cập nhật thông tin thành công.'
         })
     } catch (error) {
         return next(Error(500, 'Error saving'));

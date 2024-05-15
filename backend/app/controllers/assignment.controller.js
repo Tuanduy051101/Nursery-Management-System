@@ -3,47 +3,66 @@ const Error = require('http-errors');
 const { letters_24 } = require('../utils/common');
 
 exports.create = async (req, res, next) => {
+    console.log(req.body);
     try {
-        const { duty, note, teacher, classes } = req.body;
-
-        if (!duty || !teacher || !classes) {
+        const { duty, note, teachers, classes } = req.body;
+        const dutyInfo = await Duty.findById(duty);
+        const classInfo = await Classes.findById(classes).populate([
+            'grade',
+            {
+                path: 'schoolYear',
+                populate: {
+                    path: 'childcareCenter'
+                }
+            }
+        ]);
+        if (!duty || !teachers || !classes) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             });
         }
 
-        const check = await Assignment.exists({
-            duty: { $in: duty },
-            teacher: { $in: teacher },
-            classes: { $in: classes }
-        });
+        let s = 0, e = 0;
 
-        if (check) {
-            return res.send({
-                error: true,
-                message: 'Already exists.'
+        let documents = [];
+
+        for (let teacher of teachers) {
+            const check = await Assignment.exists({
+                duty: { $in: duty },
+                teacher: { $in: teacher },
+                classes: { $in: classes }
             });
+
+            if (check) {
+                e++;
+            } else {
+                const document = await Assignment.create({
+                    teacher: teacher,
+                    duty: duty,
+                    classes: classes,
+                    note: note || 'không có'
+                });
+                documents.push(teacher.toString());
+                const updatePromises = [
+                    Teacher.findByIdAndUpdate(teacher, { $push: { assignment: document._id } }, { new: true }),
+                    Duty.findByIdAndUpdate(duty, { $push: { assignment: document._id } }, { new: true }),
+                    Classes.findByIdAndUpdate(classes, { $push: { assignment: document._id } }, { new: true })
+                ];
+
+                await Promise.all(updatePromises);
+
+                s++;
+            }
         }
-
-        const document = await Assignment.create({
-            teacher: teacher,
-            duty: duty,
-            classes: classes,
-            note: note || 'không có'
-        });
-
-        const updatePromises = [
-            Teacher.findByIdAndUpdate(teacher, { $push: { assignment: document._id } }, { new: true }),
-            Duty.findByIdAndUpdate(duty, { $push: { assignment: document._id } }, { new: true }),
-            Classes.findByIdAndUpdate(classes, { $push: { assignment: document._id } }, { new: true })
-        ];
-
-        await Promise.all(updatePromises);
 
         return res.send({
             error: false,
-            message: [document]
+            message: `Đã tạo thành công ${s} phân công.`,
+            documents: documents,
+            classes: classes,
+            dutyInfo: dutyInfo,
+            classInfo, classInfo,
         });
     } catch (error) {
         return next(Error(500, 'Error saving'));
@@ -79,7 +98,10 @@ exports.delete = async (req, res, next) => {
 
         await Promise.all(updatePromises);
 
-        return res.send(result);
+        return res.send({
+            error: false,
+            message: 'Đã xoá thành công.'
+        });
     } catch (error) {
         return next(Error(500, 'Error deleting document'));
     }

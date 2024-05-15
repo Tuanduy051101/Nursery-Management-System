@@ -1,83 +1,33 @@
-const { MealTicket, Classes, Meal, Children, Evaluate } = require('../models/model');
+const { MealTicket, Classes, Meal, Children, Evaluate, } = require('../models/model');
 const Error = require('http-errors');
 const { letters_24 } = require('../utils/common');
 
 exports.create = async (req, res, next) => {
-    if (Object.keys(req.body).length != 0) {
-        const classes = req.body.classes,
-            children = req.body.children,
-            meal = req.body.meal;
 
-        // const check = await MealTicket.find({
-        //     $and: [
-        //         { date: { $in: date } },
-        //         { classes: { $in: classes } },
-        //         { child: { $in: child } },
-        //     ]
-        // });
-        const check = 0;
-        if (check != 0) return res.send({
-            error: true,
-            message: 'Can not choose the same meal in 1 day.',
-        })
-        else {
-            try {
-                for (let value of children) {
-                    const document = await new MealTicket({
-                        classes: classes,
-                        child: value._id,
-                        meal: meal,
-                        evaluate: 'aaaaaaaaaaaaaaaaaaaaaaaa'
-                    }).save();
-
-
-                    const evaluate = await new Evaluate({
-                        like: true,
-                        allergy: false,
-                        mealTicket: document._id,
-                        note: '',
-                    }).save();
-
-                    const mealTicket = await MealTicket.findById(document._id);
-
-                    mealTicket.evaluate = evaluate;
-
-                    await mealTicket.save();
-
-
-                    const childd = await Children.findById(value._id);
-                    childd.mealTicket.push(document._id);
-                    await childd.save();
-
-                    const classesd = await Classes.findById(document.classes);
-                    classesd.mealTicket.push(document._id);
-                    await classesd.save();
-
-                    const meald = await Meal.findById(document.meal);
-                    meald.mealTicket.push(document._id);
-                    await meald.save();
-                }
-
-                res.send({
-                    error: false,
-                });
-            } catch (error) {
-                return next(
-                    Error(500, 'Error saving')
-                )
-            }
-        }
-    }
 }
 
 exports.findAll = async (req, res, next) => {
     try {
-        const documents = await MealTicket.find().populate({
-            path: 'meal',
-            populate: {
-                path: 'dish',
+        const documents = await MealTicket.find().populate([
+            {
+                path: 'child',
+                populate: {
+                    path: 'parentDetails',
+                }
+            },
+            {
+                path: 'classes',
+                populate: {
+                    path: 'schoolYear grade'
+                }
+            },
+            {
+                path: 'meal',
+                populate: {
+                    path: 'dish session'
+                }
             }
-        }).populate("classes").populate("child").populate("evaluate");
+        ])
         res.send(documents);
     } catch (error) {
         return next(
@@ -86,53 +36,17 @@ exports.findAll = async (req, res, next) => {
     }
 }
 
-exports.deleteAll = async (req, res, next) => {
-    try {
-        const documents = await MealTicket.deleteMany();
-        res.send(documents);
-    } catch (error) {
-        return next(
-            Error(500, 'Error deleting documents')
-        )
-    }
-}
-
 exports.delete = async (req, res, next) => {
     try {
         const result = await MealTicket.findByIdAndDelete(req.params.id);
-        const evaluated = await Evaluate.findByIdAndDelete(result.evaluate);
 
-        const child = await Children.findById(result.child);
-        console.log(child);
-        child.mealTicket = child.mealTicket.filter(
-            (value, index) => {
-                console.log(value);
-                console.log(result._id);
-                return !(value != result._id);
-            }
-        )
-        await child.save();
-
-        const classd = await Classes.findById(result.classes);
-        classd.mealTicket = classd.mealTicket.filter(
-            (value, index) => {
-                return !(value != result._id);
-            }
-        )
-        await classd.save();
-
-        const meald = await Meal.findById(result.meal);
-        meald.mealTicket = meald.mealTicket.filter(
-            (value, index) => {
-                return !(value != result._id);
-            }
-        )
-        await meald.save();
-
-        // await evaluated.save();
+        await Classes.findByIdAndUpdate(result.classes, { $pull: { mealTicket: result._id } });
+        await Children.findByIdAndUpdate(result.child, { $pull: { mealTicket: result._id } });
+        await Meal.findByIdAndUpdate(result.meal, { $pull: { mealTicket: result._id } });
 
         return res.send({
             error: false,
+            message: 'Đã xoá thành công.'
         });
     } catch (error) {
         return next(
@@ -148,6 +62,56 @@ exports.find = async (req, res, next) => {
     } catch (error) {
         return next(
             Error(500, 'Error finding document')
+        )
+    }
+}
+
+exports.update = async (req, res, next) => {
+    try {
+        const { task } = req.body;
+        const _id = req.params.id;
+        const mealTicket = await MealTicket.findById(_id);
+
+        if (task == 'save') {
+            console.log(req.body);
+            const { evaluate, remark } = req.body;
+            await MealTicket.findByIdAndUpdate(_id, { evaluate, remark: remark || 'không có' });
+            return res.send({
+                error: true,
+                message: 'Đã cập nhật thông tin thành công.'
+            })
+        }
+
+        const check = await MealTicket.exists({
+            classes: mealTicket.classes.toString(),
+            child: mealTicket.child.toString(),
+            meal: req.body.meal,
+        });
+        if (check) {
+            return res.send({
+                error: true,
+                message: 'Khẩu phần ăn đã được đăng ký.'
+            })
+        }
+        // Lưu lại tài liệu mới
+        const savedMealTicket = await MealTicket.create({
+            note: 'không có',
+            evaluate: 'yêu thích',
+            remark: 'không có',
+            classes: mealTicket.classes.toString(),
+            child: mealTicket.child.toString(),
+            meal: req.body.meal,
+        });
+        const x = await Children.findByIdAndUpdate(mealTicket.child.toString(), { $push: { mealTicket: savedMealTicket._id } }, { new: true });
+        const y = await Classes.findByIdAndUpdate(mealTicket.classes.toString(), { $push: { mealTicket: savedMealTicket._id } }, { new: true });
+        await Meal.findByIdAndUpdate(req.body.meal, { $push: { mealTicket: savedMealTicket._id } });
+        return res.send({
+            error: false,
+            message: 'Đã thay đổi khẩu phần ăn thành công.'
+        })
+    } catch (error) {
+        return next(
+            Error(500, 'Error saving document')
         )
     }
 }

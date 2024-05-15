@@ -85,10 +85,7 @@ export const items_cp = ref([]);
 export const item = ref({});
 export const background = ref("rgb(51 65 85 / var(--tw-bg-opacity))");
 export const searchText = ref("");
-export const searchWith = ref({
-  _id: 'name',
-  name: 'Search by name'
-});
+export const searchWith = ref({});
 export const searchOption = ref([]);
 export const entryValue = ref(5);
 export const typing_entry = ref(false);
@@ -98,8 +95,7 @@ export const option_entry = ref([
   { _id: 20, name: 20 },
   { _id: 30, name: 30 },
   { _id: 40, name: 40 },
-  { _id: 50, name: 50 },
-  { _id: 'other', name: 'other' },
+  { _id: 'other', name: 'khác' },
 ]);
 export const mode = ref("auto");
 export const option_mode = ref([
@@ -119,8 +115,17 @@ const toString = computed(() => {
     if (searchWith.value._id == value._id) {
       if (searchWith.value._id == 'child_name') {
         return items.value.map((item, index) => {
-          console.log(item.children);
           return item.children.map(child => child.name).join("");
+        });
+      }
+      if (searchWith.value._id == 'parent_name') {
+        return items.value.map((item, index) => {
+          return item.parentDetails.map(i => i.name).join("");
+        });
+      }
+      if (searchWith.value._id == 'parent_phone') {
+        return items.value.map((item, index) => {
+          return item.parentDetails.map(i => i.phone).join("");
         });
       }
       return items.value.map((item, index) => {
@@ -170,37 +175,148 @@ const handleClickOutside = (event) => {
 };
 
 // define
-export const const_sy = ref('School year');
-export const const_gr = ref('Grade');
-export const const_tf = ref('Tuition fees');
-export const const_ge = ref('Gender');
-export const const_ag = ref('Age');
-export const const_ps = ref('Position');
-export const const_dl = ref('Diploma');
+export const const_sy = ref('Năm học');
+export const const_gr = ref('Khối học');
+export const const_cl = ref('Lớp học');
+export const const_tf = ref('Khoản thu');
+export const const_ge = ref('Giới tính');
+export const const_ag = ref('Độ tuổi');
+export const const_ps = ref('Chức vụ');
+export const const_dl = ref('Bằng cấp');
+export const const_st = ref('Trạng thái');
+export const const_da = ref('Ngày');
+export const const_se = ref('Buổi');
+export const const_mo = ref('Tháng');
+export const const_height = ref('Chiều cao');
+export const const_weight = ref('Cân nặng');
+export const const_rose = ref('Bông hồng');
+export const const_health = ref('Sức khoẻ');
+export const const_evaluate = ref('Đánh giá');
+export const const_statusChild = ref('Trạng thái');
+export const const_childcareCenter = ref('Nhà trẻ');
+export const resetFilter = () => {
+  ageValue.value = const_ag.value;
+  genderValue.value = const_ge.value;
+  schoolYearValue.value = const_sy.value;
+  gradeValue.value = const_gr.value;
+  classValue.value = const_cl.value;
+  tuitionFeesValue.value = const_tf.value;
+  positionValue.value = const_ps.value;
+  diplomaValue.value = const_dl.value;
+  dateValue.value = const_da.value;
+  sessionValue.value = const_se.value;
+  statusValue.value = const_st.value;
+  monthValue.value = const_mo.value;
+  heightValue.value = const_height.value;
+  weightValue.value = const_weight.value;
+  roseValue.value = const_rose.value;
+  healthValue.value = const_health.value;
+  evaluateValue.value = const_evaluate.value;
+  statusChildValue.value = const_statusChild.value;
+  childcareCenterValue.value = const_childcareCenter.value;
+}
+export const reset = () => {
+  items.value = [];
+  currentPage.value = 1;
+  searchText.value = '';
+  // entryValue.value = 5;
+  typing_entry.value = false;
+  numberOfPages.value = 1;
+  totalRow.value = 0;
+  startRow.value = 0;
+  endRow.value = 0;
+  activeAdd.value = false;
+  activeEdit.value = false;
+  resetFilter();
+}
 export const filters = () => {
   if (ageValue.value != const_ag.value && ageValue.value) {
+    console.log('age');
     filter_age(ageValue.value);
   }
   if (genderValue.value != const_ge.value && genderValue.value) {
+    console.log('gender');
     filter_gender(genderValue.value);
   }
   if (schoolYearValue.value != const_sy.value && schoolYearValue.value) {
+    console.log('year');
+    console.log(items.value);
+    console.log('c');
     filter_schoolYear(schoolYearValue.value);
+    console.log(items.value);
   }
   if (gradeValue.value != const_gr.value && gradeValue.value) {
+    console.log('grade');
     filter_grade(gradeValue.value);
   }
+  if (classValue.value != const_cl.value && classValue.value) {
+    console.log('class');
+    filter_class(classValue.value);
+  }
   if (tuitionFeesValue.value != const_tf.value && tuitionFeesValue.value) {
+    console.log('tuition');
     filter_tuitionFees(tuitionFeesValue.value);
   }
   if (positionValue.value != const_ps.value && positionValue.value) {
+    console.log('position');
     filter_position(positionValue.value);
   }
   if (diplomaValue.value != const_dl.value && diplomaValue.value) {
+    console.log('diploma');
     filter_diploma(diplomaValue.value);
   }
+  if (dateValue.value != const_da.value && dateValue.value) {
+    console.log('date');
+    console.log(items.value);
+    filter_date(dateValue.value);
+    console.log(items.value);
+  }
+  if (sessionValue.value != const_se.value && sessionValue.value) {
+    console.log('session');
+    console.log(items.value);
+    filter_session(sessionValue.value);
+    console.log(items.value);
+  }
+  if (statusValue.value != const_st.value && statusValue.value) {
+    console.log('status');
+    filter_status(statusValue.value);
+  }
+  if (evaluateValue.value != const_evaluate.value && evaluateValue.value) {
+    console.log('evaluate');
+    filter_evaluate(evaluateValue.value);
+  }
+  if (monthValue.value != const_mo.value && monthValue.value) {
+    console.log('month');
+    filter_month(monthValue.value);
+  }
+  if (heightValue.value != const_height.value && heightValue.value) {
+    console.log('height');
+    filter_height(heightValue.value);
+  }
+  if (weightValue.value != const_weight.value && weightValue.value) {
+    filter_weight(weightValue.value);
+    console.log('weight');
+  }
+  if (roseValue.value != const_rose.value && roseValue.value) {
+    console.log('rose');
+    filter_rose(roseValue.value);
+  }
+  if (healthValue.value != const_health.value && healthValue.value) {
+    console.log('health');
+    filter_health(healthValue.value);
+  }
+  if (statusChildValue.value != const_statusChild.value && statusChildValue.value) {
+    console.log('statuschild');
+    filter_statusChild(statusChildValue.value);
+  }
+  if (childcareCenterValue.value != const_childcareCenter.value && childcareCenterValue.value) {
+    console.log('childcareCenter');
+    console.log(childcareCenterValue.value);
+    console.log(items.value);
+    filter_childcareCenter(childcareCenterValue.value);
+    console.log(items.value);
+  }
 }
-
 
 // data
 export const positionList = ref([]);
@@ -218,6 +334,9 @@ export const filter_diploma = (_id) => {
 export const gradeList = ref([]);
 export const gradeValue = ref('');
 
+export const classList = ref([]);
+export const classValue = ref('');
+
 
 export const schoolYearList = ref([]);
 export const schoolYearValue = ref('');
@@ -227,11 +346,15 @@ export const tuitionFeesList = ref([]);
 export const tuitionFeesValue = ref('');
 
 export const filter_grade = (_id) => {
-  items.value = items.value.filter(item => item.grade_id == _id);
+  items.value = items.value.filter(item => item.grade_id ? item.grade_id.includes(_id) : item.grade.includes(_id));
+}
+
+export const filter_class = (_id) => {
+  items.value = items.value.filter(item => item.class_id ? item.class_id.includes(_id) : item.classes.some(i => i._id == _id));
 }
 
 export const filter_schoolYear = (_id) => {
-  items.value = items.value.filter(item => item.schoolYear_id == _id);
+  items.value = items.value.filter(item => item.schoolYear_id ? item.schoolYear_id == _id : item.schoolYear.includes(_id));
 }
 export const filter_tuitionFees = (_id) => {
   items.value = items.value.filter(item => item.tuitionFees_id == _id);
@@ -270,11 +393,12 @@ export const ageList = ref([
   },
   {
     _id: 'other',
-    name: 'other',
+    name: 'khác',
   }
 ])
 export const ageValue = ref('Age');
 export const filter_age = (_id) => {
+  console.log('items', items.value);
   items.value = items.value.filter(item => item.age_format == _id);
 }
 
@@ -287,3 +411,93 @@ export const genderValue = ref('');
 export const filter_gender = (_id) => {
   items.value = items.value.filter(item => item.gender == _id);
 }
+
+export const dateValue = ref('');
+export const filter_date = (_id) => {
+  items.value = items.value.filter(item => item.date == _id);
+}
+
+export const sessionList = ref([]);
+export const sessionValue = ref('');
+export const filter_session = (_id) => {
+  items.value = items.value.filter(item => item.session._id == _id);
+}
+
+export const statusList = ref([
+  { _id: 'true', name: 'có mặt' },
+  { _id: 'false', name: 'vắng mặt' },
+]);
+export const statusValue = ref('');
+export const filter_status = (_id) => {
+  items.value = items.value.filter(item => item.status == _id);
+}
+
+export const evaluateList = ref([
+  { _id: 'true', name: 'có mặt' },
+  { _id: 'false', name: 'vắng mặt' },
+]);
+export const evaluateValue = ref('');
+export const filter_evaluate = (_id) => {
+  items.value = items.value.filter(item => item.evaluate == _id);
+}
+
+
+export const monthList = ref([]);
+export const monthValue = ref('');
+export const filter_month = (_id) => {
+  items.value = items.value.filter(item => item.month._id == _id);
+}
+
+export const heightValue = ref('');
+export const filter_height = (_id) => {
+  items.value = items.value.filter(item => item.height == _id);
+}
+export const weightValue = ref('');
+export const filter_weight = (_id) => {
+  items.value = items.value.filter(item => item.weight == _id);
+}
+export const roseValue = ref('');
+export const filter_rose = (_id) => {
+  items.value = items.value.filter(item => item.roses == _id);
+}
+export const healthValue = ref('');
+export const filter_health = (_id) => {
+  items.value = items.value.filter(item => item.health == _id);
+}
+
+export const statusChildList = ref([
+  {
+    _id: 'nhập học',
+    name: 'nhập học',
+  },
+  {
+    _id: 'đang học',
+    name: 'đang học',
+  },
+  {
+    _id: 'tạm ngưng học',
+    name: 'tạm ngưng học',
+  },
+  {
+    _id: 'hoàn thành',
+    name: 'hoàn thành',
+  }
+]);
+export const statusChildValue = ref('');
+export const filter_statusChild = (_id) => {
+  items.value = items.value.filter(item => item.statusChild == _id);
+}
+
+export const getHours = () => {
+  const date = new Date();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}`;
+}
+
+export const childcareCenterValue = ref('');
+export const childcareCenterList = ref([]);
+export const filter_childcareCenter = (_id) => {
+  items.value = items.value.filter(i => i.childcareCenterId == _id);
+}
+

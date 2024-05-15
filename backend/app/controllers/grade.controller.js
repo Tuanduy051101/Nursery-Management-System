@@ -9,7 +9,7 @@ exports.create = async (req, res, next) => {
         if (!name) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             });
         }
 
@@ -17,14 +17,14 @@ exports.create = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists.'
+                message: 'Khối đã tồn tại.'
             });
         }
         const document = await Grade.create({ name, description: description || 'không có' });
 
         return res.send({
             error: false,
-            message: 'Successfully created.',
+            message: 'Đã tạo thành công.',
         });
     } catch (error) {
         // console.log(error);
@@ -51,7 +51,7 @@ exports.delete = async (req, res, next) => {
         const result = await Grade.findByIdAndDelete(req.params.id);
         res.send({
             error: false,
-            message: 'Successfully deleted.'
+            message: 'Đã xoá thành công.'
         });
     } catch (error) {
         return next(createError(500, 'Error deleting document'));
@@ -79,7 +79,7 @@ exports.update = async (req, res, next) => {
         if (!name) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             });
         }
 
@@ -90,19 +90,19 @@ exports.update = async (req, res, next) => {
                 await Grade.findByIdAndUpdate(_id, { description: description || "không có" });
                 return res.send({
                     error: false,
-                    message: 'Successfully updated.',
+                    message: 'Đã cập nhật thông tin thành công.',
                 });
             }
             return res.send({
                 error: true,
-                message: 'Already exists.'
+                message: 'Khối đã tồn tại.'
             });
         }
         await Grade.findByIdAndUpdate(_id, { name, description: description || "không có" });
 
         return res.send({
             error: false,
-            message: 'Successfully updated.',
+            message: 'Đã cập nhật thông tin thành công.',
         });
     } catch (error) {
         // console.log(error);

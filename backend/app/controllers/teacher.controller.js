@@ -1,29 +1,18 @@
 const { response } = require('express');
-const { Teacher, Position, Diploma, SchoolYear, Account } = require('../models/model');
+const { Teacher, Position, Diploma, SchoolYear, Account, ChildcareCenter, WorkTransferHistory } = require('../models/model');
 const Error = require('http-errors');
 const { hashPassword } = require('./common/index.js');
 const nodemailer = require('nodemailer');
 
 exports.create = async (req, res, next) => {
-    // {
-    //     "name": "bay bay",
-    //     "gender": "true",
-    //     "phone": "0345670987",
-    //     "email": "trantuanduy.05112001@gmail.com",
-    //     "address": "soc trang",
-    //     "position": "64c8bee4595b92759aa32795",
-    //     "diploma": "64c4a3713ae308fbdced5159",
-    //     "user_name": "cp8",
-    //     "password": "cp8",
-    //     "role": "teacher"
-    // }
+    console.log(req.body);
     try {
-        const { name, gender, phone, email, address, position, diploma } = req.body;
+        const { name, gender, phone, email, address, position, diploma, childcareCenter, startWorking } = req.body;
         const { user_name, password, role } = req.body;
-        if (!name || !gender || !phone || !email || !address || !position || !diploma || !user_name || !password || !role) {
+        if (!name || !gender || !phone || !email || !address || !position || !diploma || !user_name || !password || !role || !childcareCenter || !startWorking) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
         const check = await Teacher.exists({
@@ -38,12 +27,12 @@ exports.create = async (req, res, next) => {
             if (check_account) {
                 return res.send({
                     error: true,
-                    message: `User name already exists.`
+                    message: `Tên tài khoản đã tồn tại.`
                 });
             }
             return res.send({
                 error: true,
-                message: `E-mail or phone already exists.`
+                message: `E-mail hoặc số điện thoại đã tồn tại.`
             });
         } else {
             const hashedPassword = await hashPassword(password);
@@ -57,8 +46,11 @@ exports.create = async (req, res, next) => {
                 position,
                 diploma,
                 account: new_account._id,
+                startWorking,
             });
-
+            document.childcareCenter.push(childcareCenter);
+            await document.save();
+            await ChildcareCenter.findByIdAndUpdate(childcareCenter, { $push: { teacher: document._id } });
             await Position.findByIdAndUpdate(position, { $push: { teacher: document._id } });
             await Diploma.findByIdAndUpdate(diploma, { $push: { teacher: document._id } });
 
@@ -81,7 +73,7 @@ exports.create = async (req, res, next) => {
 
             return res.send({
                 error: false,
-                message: 'Successfully created.'
+                message: 'Đã thêm thành công.'
             });
         }
     } catch (error) {
@@ -94,7 +86,27 @@ exports.create = async (req, res, next) => {
 
 exports.findAll = async (req, res, next) => {
     try {
-        const documents = await Teacher.find().populate("position diploma assignment.classes.schoolYear account");
+        const documents = await Teacher.find().populate([
+            'position',
+            'diploma',
+            'childcareCenter',
+            {
+                path: 'workTransferHistory',
+                populate: {
+                    path: 'childcareCenter'
+                }
+            },
+            'account',
+            {
+                path: 'assignment',
+                populate: {
+                    path: 'classes',
+                    populate: {
+                        path: 'grade schoolYear'
+                    }
+                }
+            }
+        ]);
         res.send(documents);
     } catch (error) {
         return next(
@@ -109,10 +121,9 @@ exports.delete = async (req, res, next) => {
         await Position.findByIdAndUpdate(result.position, { $pull: { teacher: result._id } });
         await Diploma.findByIdAndUpdate(result.diploma, { $pull: { teacher: result._id } });
         await Account.findByIdAndDelete(result.account);
-
         res.send({
             error: false,
-            message: 'Successfully deleted.'
+            message: 'Đã xoá thành công.'
         });
     } catch (error) {
         return next(
@@ -123,26 +134,27 @@ exports.delete = async (req, res, next) => {
 
 exports.deleteDiploma = async (req, res, next) => {
     const { diplomas } = req.body;
+    const _id = req.params.id;
     if (!diplomas || diplomas.length == 0) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu các trường bắt buộc.'
         })
     }
     let count = 0;
     try {
         for (let diploma of diplomas) {
-            const check_diploma = await Teacher.exists({ _id: request.params.id, diploma: { $in: [diploma] } });
-            if (!check_diploma) {
-                const teacher = await Teacher.findByIdAndUpdate(req.params.id, { $push: { diploma: diploma } }, { new: true });
-                const diploma_update = await Diploma.findByIdAndUpdate(diploma, { $push: { teacher: teacher._id } }, { new: true });
+            const check_diploma = await Teacher.exists({ _id: _id, diploma: { $in: [diploma] } });
+            if (check_diploma) {
+                const teacher = await Teacher.findByIdAndUpdate(_id, { $pull: { diploma: diploma } }, { new: true });
+                const diploma_update = await Diploma.findByIdAndUpdate(diploma, { $pull: { teacher: teacher._id } }, { new: true });
                 count++;
             }
         }
 
         return res.send({
             error: false,
-            message: `Successfully add ${count} diplomas.`
+            message: `Đã xoá ${count} bằng cấp.`
         })
     } catch (error) {
         console.log(error);
@@ -151,18 +163,19 @@ exports.deleteDiploma = async (req, res, next) => {
 
 exports.addDiploma = async (req, res, next) => {
     const { diplomas } = req.body;
+    const _id = req.params.id;
     if (!diplomas || diplomas.length == 0) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu các trường bắt buộc.'
         })
     }
     let count = 0;
     try {
         for (let diploma of diplomas) {
-            const check_diploma = await Teacher.exists({ _id: request.params.id, diploma: { $in: [diploma] } });
+            const check_diploma = await Teacher.exists({ _id: _id, diploma: { $in: [diploma] } });
             if (!check_diploma) {
-                const teacher = await Teacher.findByIdAndUpdate(req.params.id, { $push: { diploma: diploma } }, { new: true });
+                const teacher = await Teacher.findByIdAndUpdate(_id, { $push: { diploma: diploma } }, { new: true });
                 const diploma_update = await Diploma.findByIdAndUpdate(diploma, { $push: { teacher: teacher._id } }, { new: true });
                 count++;
             }
@@ -170,7 +183,7 @@ exports.addDiploma = async (req, res, next) => {
 
         return res.send({
             error: false,
-            message: `Successfully add ${count} diplomas.`
+            message: `Đã thêm thành công.`
         })
     } catch (error) {
         console.log(error);
@@ -179,7 +192,28 @@ exports.addDiploma = async (req, res, next) => {
 
 exports.find = async (req, res, next) => {
     try {
-        const document = await Teacher.findById(req.params.id).populate("position diploma assignment account");
+        const document = await Teacher.findById(req.params.id).populate([
+            'position', 'diploma',
+            'childcareCenter',
+            {
+                path: 'workTransferHistory',
+                populate: {
+                    path: 'childcareCenter'
+                }
+            },
+            {
+                path: 'assignment',
+                populate: [
+                    'duty',
+                    {
+                        path: 'classes',
+                        populate: {
+                            path: 'schoolYear grade'
+                        }
+                    }
+                ]
+            }
+        ]);
         res.send(document);
     } catch (error) {
         return next(
@@ -193,7 +227,7 @@ exports.update = async (req, res, next) => {
     if (!name || !gender || !phone || !email || !address || !position) {
         return res.send({
             error: true,
-            message: 'Missing required fields.'
+            message: 'Thiếu các trường bắt buộc.'
         })
     }
     const check = await Teacher.exists({
@@ -237,12 +271,12 @@ exports.update = async (req, res, next) => {
             await Teacher.findByIdAndUpdate(req.params.id, { name, gender, address, position }, { new: true });
             return res.send({
                 error: false,
-                message: 'Successfully updated.'
+                message: 'Đã cập nhật thông tin thành công.'
             });
         }
         return res.send({
             error: true,
-            message: 'Already exists.'
+            message: 'Thông tin đã tồn tại.'
         });
     }
     try {
@@ -251,6 +285,50 @@ exports.update = async (req, res, next) => {
             error: false,
             message: teacher,
         });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+exports.transferWork = async (req, res, next) => {
+    try {
+        const { teacher, childcareCenter, date } = req.body;
+        if (teacher.length == 0) {
+            return res.send({
+                error: true,
+                message: 'Vui lòng chọn giáo viên cần chuyển công tác.'
+            });
+        }
+        if (!childcareCenter) {
+            return res.send({
+                error: true,
+                message: 'Thiếu những trường bắt buộc.'
+            })
+        }
+
+        for (let value of teacher) {
+            const teacherInfo = await Teacher.findById(value._id);
+            await ChildcareCenter.findByIdAndUpdate(teacherInfo.childcareCenter[teacherInfo.childcareCenter.length - 1].toString(), { $pull: { teacher: value._id } });
+
+            const document = await WorkTransferHistory.create({
+                teacher: value._id,
+                childcareCenter: teacherInfo.childcareCenter[teacherInfo.childcareCenter.length - 1].toString(),
+                date: teacherInfo.startWorking,
+            });
+
+            teacherInfo.startWorking = date;
+            teacherInfo.childcareCenter.push(childcareCenter);
+            await teacherInfo.save();
+
+            await Teacher.findByIdAndUpdate(teacher, { $push: { workTransferHistory: document._id } });
+            await ChildcareCenter.findByIdAndUpdate(childcareCenter, { $push: { teacher: value._id } });
+        }
+
+        return res.send({
+            error: false,
+            message: 'Đã chuyển trường thành công.'
+        })
+
     } catch (error) {
         console.log(error);
     }

@@ -6,7 +6,7 @@
         style="width: 105px"
         :options="option_entry"
         :modelValue="entryValue"
-        :title="`Record`"
+        :title="`Số bản ghi`"
         @update:modelValue="
           async (value) => {
             currentPage = 1;
@@ -22,17 +22,8 @@
           }
         "
       />
-      <FSelect
-        class="w-28 mx-5"
-        :options="option_mode"
-        :modelValue="`auto`"
-        :title="`Display`"
-        v-model="mode"
-      />
-    </div>
-    <div class="flex-1 flex">
       <FSearch
-        class="flex-1 mx-5"
+        class="flex-1 ml-5"
         @search="
           (value) => {
             searchText = value;
@@ -43,38 +34,102 @@
         @searchWith="(value) => (searchWith = value)"
         :optionSearch="searchOption"
       />
-      <router-link :to="{ name: 'ClassRoom.add', params: { id: classId } }">
-        <BAdd @click="activeAdd = true" />
+      <!-- <FSelect
+        class="w-28 mx-5"
+        :options="option_mode"
+        :modelValue="`auto`"
+        :title="`Display`"
+        v-model="mode"
+      /> -->
+    </div>
+    <div class="flex-1 flex justify-end">
+      <router-link
+        v-if="role != 'Teacher'"
+        :to="{
+          name: role == 'Teacher' ? 'ClassRoom-teacher.add' : 'ClassRoom.add',
+          params: { id: classId },
+        }"
+      >
+        <BAdd @click="activeAdd = true" class="ml-5 h-full" />
       </router-link>
-      <input
-        @click="print = true"
-        class="text-slate-300 border border-solid py-2 px-6 rounded-md border-slate-600 hover:border-slate-300 cursor-pointer ml-5"
-        type="submit"
-        value="Print"
-      />
+      <div
+        ref="selectRef"
+        class="group relative h-10 border-2 border-solid border-gray-200 bg-gray-200 hover:shadow-lg hover:shadow-yellow-500/50 cursor-pointer rounded-md ml-5 flex items-center px-5"
+      >
+        <label
+          class="group cursor-pointer text-black"
+          @click="activeExport = true"
+        >
+          Xuất file
+        </label>
+        <ul
+          v-if="activeExport"
+          class="w-full group absolute right-0 mt-32 py-2 bg-white border border-gray-300 rounded-md shadow-lg z-10"
+        >
+          <li @click="export_pdf" class="px-4 hover:bg-gray-100 cursor-pointer">
+            <span class="text-sm text-black">pdf</span>
+          </li>
+          <li
+            @click="export_excel"
+            class="px-4 hover:bg-gray-100 cursor-pointer"
+          >
+            excel
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
   <Table
     :items="setPages"
-    :fields="['Children', 'Gender', 'Birthday', 'Address', 'Parents']"
+    :fields="[
+      'Mã trẻ',
+      'Tên trẻ',
+      'Giới tính',
+      'Ngày sinh',
+      'Tên phụ huynh',
+      'Số điện thoại'
+    ]"
     :labels="[
+      '_id',
       'name',
       'gender_format',
       'birthday_format',
-      'address',
       'parent_name',
+      'parent_phone',
     ]"
+    :wrap-list="[false, false, false, false, false]"
     :mode="mode"
     :startRow="startRow"
     @delete="(value) => remove(value)"
-    :show-action="[true, false, true]"
+    :show-action="[true, false, role == 'giáo viên quản lý trẻ' ? false : true]"
+    @view="
+        (value) => {
+          idChild = value;
+          activeViewDetailChild = true;
+        }
+      "
   />
+  <!-- :action-list="[
+      role == 'Teacher' ? 'Children-teacher.view' : 'Children.view',
+    ]" -->
+    {{ activeViewDetailChild }} {{ idChild }}
   <Pagination
     :numberOfPages="numberOfPages"
     :totalRow="totalRow"
     :startRow="startRow"
     :endRow="endRow"
     v-model:currentPage="currentPage"
+  />
+  <FormViewDetailChild
+    v-if="activeViewDetailChild"
+    :title="`Chi tiết thông tin trẻ`"
+    :id="idChild"
+    @cancel="
+      async (value) => {
+        activeViewDetailChild = value;
+        await refresh();
+      }
+    "
   />
 </template>
 
@@ -150,6 +205,7 @@ import {
   MealTicketList,
   AttendanceList,
   ReceiptList,
+  FormViewDetailChild,
   // alert
   alert_error,
   alert_warning,
@@ -170,6 +226,9 @@ import {
   formatDate,
   formatDateTime,
   formatDateTime_2,
+  XLSX,
+  generateOTP,
+  jsPDF,
 } from "../../../../assets/js/imports";
 //
 import {
@@ -219,7 +278,11 @@ import {
   const_ge,
   const_ag,
   filters,
+  resetFilter,
+  reset,
 } from "../../../../components/common/index.js";
+import "jspdf-autotable";
+
 const props = defineProps({
   classId: {
     type: String,
@@ -232,9 +295,25 @@ const props = defineProps({
   },
 });
 
+const activeExport = ref(false);
+const selectRef = ref(null);
+const activeViewDetailChild = ref(false);
+const idChild = ref("");
+
+const handleClickOutside = (event) => {
+  if (selectRef.value != null) {
+    if (!selectRef.value.contains(event.target)) {
+      activeExport.value = false;
+    }
+  }
+};
+
+const role = ref("");
+role.value = sessionStorage.getItem("role");
+
 searchOption.value = [
-  { _id: "name", name: "Search by name" },
-  { _id: "address", name: "Search by address" },
+  { _id: "name", name: "Tìm kiếm theo mã trẻ" },
+  { _id: "name", name: "Tìm kiếm theo tên trẻ" },
 ];
 
 const remove = async (item) => {
@@ -242,7 +321,7 @@ const remove = async (item) => {
   if (deleteList.length != 0) {
     const isRemove = await alert_remove(
       deleteList,
-      ["Children"],
+      ["Tên trẻ"],
       ["name"],
       "40%"
     );
@@ -254,19 +333,19 @@ const remove = async (item) => {
       }
     });
     if (isRemove) {
-      run_alert(alert_success("Successfully deleted."));
-      refresh();
+      run_alert(alert_success("Đã xoá trẻ ra khỏi lớp thành công."));
+      await refresh();
     }
   }
   if (deleteList.length == 0) {
-    const isRemove = await alert_remove([item], ["Children"], ["name"], "40%");
+    const isRemove = await alert_remove([item], ["Tên trẻ"], ["name"], "40%");
     if (isRemove) {
       const result = await Classes.removeChild(props.classId, {
         child: item._id,
       });
       if (!result.error) {
         run_alert(alert_success(result.message));
-        refresh();
+        await refresh();
       }
     }
   }
@@ -282,10 +361,98 @@ const refresh = async () => {
     birthday_format: formatDate(item.birthday),
     gender_format: item.gender == "true" ? "nam" : "nữ",
     parent_name: item.parentDetails[0].name,
+    parent_phone: item.parentDetails[0].phone,
   }));
 };
 
+const export_excel = async () => {
+  const temp = await http_getOne(Classes, props.classId);
+  const data = [
+    [`Danh sách lớp ${temp[0].name}`],
+    [
+      "Children",
+      "Children's gender",
+      "Children's Birthday",
+      "Children's address",
+      "Parents's name",
+      "Parent's gender",
+      "Phone",
+      "Email",
+      "Parent's address",
+      "Relationship",
+    ],
+  ];
+
+  for (let value of items.value) {
+    data.push([
+      value.name,
+      value.gender_format,
+      value.birthday,
+      value.address,
+      value.parentDetails[0].name,
+      value.parentDetails[0].gender == "true" ? "nam" : "nữ",
+      value.parentDetails[0].phone,
+      value.parentDetails[0].email,
+      value.parentDetails[0].address,
+      value.parentDetails[0].relationship,
+    ]);
+  }
+
+  // Tạo workbook và worksheet mới
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // Thêm worksheet vào workbook
+  XLSX.utils.book_append_sheet(wb, ws, "Danh sách");
+
+  // Tạo Blob từ workbook
+  const blob = new Blob([XLSX.write(wb, { bookType: "xlsx", type: "array" })], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  // Tạo URL cho blob và tạo một thẻ a để tải file
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "danh_sach.xlsx";
+  a.click();
+
+  // Giải phóng URL
+  URL.revokeObjectURL(url);
+};
+
+const export_pdf = () => {
+  const data = [
+    ["Danh sách trẻ"],
+    ["Tên", "Tuổi"],
+    ["Nguyễn Văn A", 25],
+    ["Trần Thị B", 30],
+    // ...Thêm dữ liệu khác
+  ];
+
+  // Tạo đối tượng jsPDF
+  const doc = new jsPDF();
+
+  // Thêm nội dung vào PDF
+  doc.text("Danh sách trẻ", 10, 10);
+  doc.autoTable({
+    head: [["Tên", "Tuổi"]],
+    body: data.slice(1), // Loại bỏ tiêu đề cột
+  });
+
+  // Lưu file PDF
+  doc.save("danh_sach.pdf");
+};
+
 onBeforeMount(async () => {
+  reset();
   await refresh();
+});
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
 });
 </script>

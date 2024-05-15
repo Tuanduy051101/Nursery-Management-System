@@ -1,5 +1,5 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md">
+  <div class="border border-solid border-slate-300 rounded-md">
     <!-- Header -->
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
@@ -7,7 +7,7 @@
           style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
-          :title="`Record`"
+          :title="`Số bản ghi`"
           @update:modelValue="
             async (value) => {
               currentPage = 1;
@@ -23,11 +23,24 @@
           "
         />
         <FSelect
-          class="w-28 mx-5"
-          :options="option_mode"
-          :modelValue="`auto`"
-          :title="`Display`"
-          v-model="mode"
+          v-if="isToken"
+          class="w-full text-md ml-5"
+          :options="childcareCenterList"
+          :modelValue="temp_childcareCenter"
+          :title="const_childcareCenter"
+          @update:modelValue="
+            async (value) => {
+              childcareCenterValue = value;
+              await refresh();
+            }
+          "
+          @refresh="
+            async () => {
+              childcareCenterValue = const_childcareCenter;
+              await refreshFilter();
+            }
+          "
+          :showClose="true"
         />
       </div>
       <div class="flex-1 flex">
@@ -48,10 +61,11 @@
     </div>
     <Table
       :items="setPages"
-      :fields="['Position', 'Amount teacher']"
-      :labels="['name', 'teacher']"
+      :fields="['Tên Chức vụ', 'Số lượng giáo viên']"
+      :labels="['name', 'teacherAmount']"
       :mode="mode"
       :startRow="startRow"
+      :show-action="[false, true, true]"
       @delete="(value) => remove(value)"
       @edit="
         async (value) => {
@@ -71,7 +85,7 @@
   <FormOne
     v-if="activeAdd"
     :item="itemAdd"
-    :title="`Add a new position`"
+    :title="`Thêm chức vụ mới`"
     :placeholder="`Add a new position`"
     @cancel="(value) => (activeAdd = value)"
     @submit="create()"
@@ -79,7 +93,7 @@
   <FormOne
     v-if="activeEdit"
     :item="item"
-    :title="`Edit a position`"
+    :title="`Sửa thông tin chức vụ`"
     :buttonName="`Edit`"
     @cancel="(value) => (activeEdit = value)"
     @submit="edit()"
@@ -167,6 +181,8 @@ import {
   // format money
   formatCurrencyVND,
   convertToWords,
+  ChildcareCenter,
+  verifyToken,
 } from "../../../assets/js/imports";
 //
 import {
@@ -190,13 +206,18 @@ import {
   activeEdit,
   deleteValue,
   setPages,
+  reset,
+  const_childcareCenter,
+  childcareCenterValue,
+  childcareCenterList,
+  filters,
 } from "../../../components/common/index";
 
 const itemAdd = ref({
   name: "",
 });
 
-searchOption.value = [{ _id: "name", name: "Search by name" }];
+searchOption.value = [{ _id: "name", name: "Tìm kiếm theo tên chức vụ" }];
 
 const create = async () => {
   const result = await http_create(Position, itemAdd.value);
@@ -221,19 +242,19 @@ const edit = async () => {
 const remove = async (item) => {
   const deleteList = items.value.filter((item) => item.checked);
   if (deleteList.length != 0) {
-    const isRemove = await alert_remove(deleteList, ["Position"], ["name"]);
+    const isRemove = await alert_remove(deleteList, ["Tên chức vụ"], ["name"]);
     deleteList.forEach(async (item) => {
       if (isRemove) {
         const result = await http_deleteOne(Position, item._id);
       }
     });
     if (isRemove) {
-      run_alert(alert_success("Successfully deleted."));
+      run_alert(alert_success("Đã xoá thành công."));
       refresh();
     }
   }
   if (deleteList.length == 0) {
-    const isRemove = await alert_remove([item], ["Position"], ["name"]);
+    const isRemove = await alert_remove([item], ["Tên chức vụ"], ["name"]);
     if (isRemove) {
       const result = await http_deleteOne(Position, item._id);
       if (!result.error) {
@@ -244,16 +265,49 @@ const remove = async (item) => {
   }
 };
 
+const temp_childcareCenter = ref("");
+const isToken = ref("");
+const childcareCenter = ref(sessionStorage.getItem("owner_childcareCenter"));
+const childcareCenterName = ref(
+  sessionStorage.getItem("owner_childcareCenterName")
+);
+
 const refresh = async () => {
+  isToken.value = await verifyToken();
   items.value = await http_getAll(Position);
   items.value = items.value.map((item) => ({
     ...item,
     checked: false,
-    teacher: item.teacher.length,
+    teacherAmount: item.teacher.filter(
+      (i) =>
+        i.childcareCenter[i.childcareCenter.length - 1]._id ==
+        childcareCenterValue.value
+    ).length,
   }));
 };
 
+const refreshFilter = async () => {
+  isToken.value = await verifyToken();
+  items.value = await http_getAll(Position);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    teacherAmount: item.teacher.length,
+  }));
+};
+
+const filtered = async () => {
+  await refreshFilter();
+  filters();
+  currentPage.value = 1;
+};
+
 onBeforeMount(async () => {
-  refresh();
+  isToken.value = await verifyToken();
+  reset();
+  childcareCenterValue.value = childcareCenter.value;
+  temp_childcareCenter.value = childcareCenterName.value;
+  await refresh();
+  childcareCenterList.value = await http_getAll(ChildcareCenter);
 });
 </script>

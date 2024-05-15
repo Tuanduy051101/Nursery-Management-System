@@ -1,4 +1,4 @@
-const app = require("./app");
+const {app, server} = require("./app");
 const config = require("./app/config/index");
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", true);
@@ -24,6 +24,6 @@ db.once("open", () => {
     console.log("Connected to Database");
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is listening on ${port}`);
 });

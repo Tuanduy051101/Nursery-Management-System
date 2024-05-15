@@ -1,4 +1,3 @@
-const { models } = require('mongoose');
 const model = require('./common/index');
 
 // ? 1 
@@ -12,8 +11,11 @@ const CollectionRates = model.newModel('CollectionRates', {
 // ? 2
 const SchoolYear = model.newModel('SchoolYear', {
     name: model.stringTrue,
+    startDate: model.stringTrue,
+    endDate: model.stringTrue,
     classes: model.arrayId('Classes'),
     collectionRates: model.arrayId('CollectionRates'),
+    childcareCenter: model.objectId('ChildcareCenter'),
 });
 
 // ? 3
@@ -41,7 +43,7 @@ const Month = model.newModel('Month', {
 const CDI = model.newModel('CDI', {
     height: model.stringTrue,
     weight: model.stringTrue,
-    health: model.stringTrue,
+    health: { type: String, enum: ['không có', 'kém', 'tốt', 'bình thường'] },
     roses: model.stringTrue,
     note: model.stringTrue,
     child: model.objectId('Children'),
@@ -73,13 +75,20 @@ const Children = model.newModel('Children', {
     birthday: model.stringTrue,
     address: model.stringTrue,
     cDI: model.arrayId('CDI'),
+    statusChild: model.stringTrue,
     parentDetails: model.arrayId('ParentDetails'),
     receipt: model.arrayId('Receipt'),
     classes: model.arrayId('Classes'),
     attendance: model.arrayId('Attendance'),
     account: model.objectId('Account'),
     mealTicket: model.arrayId('MealTicket'),
+    historyStatus: model.arrayId('HistoryStatus'),
+    childcareCenter: model.arrayId('ChildcareCenter'),
+    schoolTransferHistory: model.arrayId('SchoolTransferHistory'),
+    startSchooling: model.stringTrue,
+    allergies: model.arrayId('Allergies'),
 });
+
 
 // ? 10
 const Classes = model.newModel('Classes', {
@@ -92,7 +101,16 @@ const Classes = model.newModel('Classes', {
     cdi: model.arrayId('CDI'),
     mealTicket: model.arrayId('MealTicket'),
     attendance: model.arrayId('Attendance'),
+    childcareCenter: model.objectId('ChildcareCenter'),
+    historyStatus: model.arrayId('HistoryStatus'),
 });
+
+const HistoryStatus = model.newModel('HistoryStatus', {
+    status: model.stringTrue,
+    date: model.stringTrue,
+    child: model.objectId('Children'),
+    classes: model.objectId('Classes'),
+})
 
 // ! 11
 const Receipt = model.newModel('Receipt', {
@@ -129,7 +147,22 @@ const Teacher = model.newModel('Teacher', {
     assignment: model.arrayId('Assignment'),
     account: model.objectId('Account'),
     payment: model.arrayId('Payment'),
+    childcareCenter: model.arrayId('ChildcareCenter'),
+    workTransferHistory: model.arrayId('WorkTransferHistory'),
+    startWorking: model.stringTrue,
 });
+
+const WorkTransferHistory = model.newModel('WorkTransferHistory', {
+    date: model.stringTrue,
+    teacher: model.objectId('Teacher'),
+    childcareCenter: model.objectId('ChildcareCenter'),
+})
+
+const SchoolTransferHistory = model.newModel('SchoolTransferHistory', {
+    date: model.stringTrue,
+    child: model.objectId('Children'),
+    childcareCenter: model.objectId('ChildcareCenter'),
+})
 
 // ? 15
 const Duty = model.newModel('Duty', {
@@ -159,7 +192,7 @@ const Account = model.newModel('Account', {
     password: {
         type: String,
     },
-    role: { type: String, enum: ['BGH', 'GVQLT', 'PH', 'QTHT', 'KT', 'GVDD'], required: true },
+    role: { type: String, enum: ['quản trị hệ thống', 'ban giám hiệu', 'phụ huynh', 'giáo viên quản lý trẻ', 'kế toán', 'nhân viên bếp'], required: true },
 });
 
 // ! 19
@@ -174,16 +207,17 @@ const MealTicket = model.newModel('MealTicket', {
     classes: model.objectId('Classes'),
     child: model.objectId('Children'),
     meal: model.objectId('Meal'),
-    evaluate: model.objectId('Evaluate'),
+    evaluate: model.stringTrue,
+    remark: model.stringTrue,
 })
 
 // ! 21
 const Meal = model.newModel('Meal', {
     dish: model.arrayId('Dish'),
     date: model.stringTrue,
-    timeStart: model.stringTrue,
-    timeEnd: model.stringTrue,
+    session: model.objectId('Session'),
     mealTicket: model.arrayId('MealTicket'),
+    note: model.stringTrue,
     grade: model.arrayId('Grade'),
 })
 
@@ -195,12 +229,15 @@ const Dish = model.newModel('Dish', {
     function: model.stringTrue,
     note: model.stringTrue,
     cooking: model.stringTrue,
+    childcareCenter: model.objectId('ChildcareCenter'),
 })
 
 // ! 23
 const Ingredient = model.newModel('Ingredient', {
     foodstuff: model.objectId('Foodstuff'),
     amount: model.stringTrue,
+    note: model.stringTrue,
+    making: model.stringTrue,
     dish: model.objectId('Dish'),
 });
 
@@ -208,8 +245,6 @@ const Ingredient = model.newModel('Ingredient', {
 const Foodstuff = model.newModel('Foodstuff', {
     name: model.stringTrue,
     function: model.stringTrue,
-    note: model.stringTrue,
-    making: model.stringTrue,
     ingredient: model.arrayId('Ingredient'),
 });
 
@@ -249,7 +284,9 @@ const PaymentDetail = model.newModel('PaymentDetail', {
 const Evaluate = model.newModel('Evaluate', {
     status: model.stringTrue,
     content: model.stringTrue,
-    mealTicket: model.objectId('MealTicket'),
+    meal: model.objectId('Meal'),
+    child: model.objectId('Children'),
+    classes: model.objectId('Classes'),
 })
 
 // !30
@@ -267,6 +304,8 @@ const Session = model.newModel('Session', {
     startTime: model.stringTrue,
     endTime: model.stringTrue,
     attendance: model.arrayId('Attendance'),
+    meal: model.arrayId('Meal'),
+    childcareCenter: model.arrayId('ChildcareCenter'),
 });
 
 // CollectionRates.add({
@@ -278,6 +317,43 @@ const Session = model.newModel('Session', {
 //     next();
 // });
 
+const Notification = model.newModel('Notification', {
+    title: model.stringTrue,
+    content: model.stringTrue,
+    dateSent: model.stringTrue,
+    recipient: model.stringTrue,
+    typeRecipient: model.stringTrue,
+    sender: model.stringTrue,
+    status: model.stringTrue,
+})
+
+const ChildcareCenter = model.newModel('ChildcareCenter', {
+    name: model.stringTrue,
+    address: model.stringTrue,
+    phone: model.stringTrue,
+    email: model.stringTrue,
+    director: model.stringTrue,
+    isHeadquarters: { type: String, enum: ['trụ sở chính', 'chi nhánh'], required: true },
+    children: model.arrayId('Children'),
+    teacher: model.arrayId('teacher'),
+})
+
+const Allergies = model.newModel('Allergies', {
+    severity: model.stringTrue,
+    reactionType: model.stringTrue,
+    treatment: model.stringTrue,
+    note: model.stringTrue,
+    child: model.objectId('Children'),
+    allergen: model.objectId('Allergen'),
+})
+
+const Allergen = model.newModel('Allergen', {
+    name: model.stringTrue,
+    description: model.stringTrue,
+    allergies: model.arrayId('Allergies')
+})
+
+
 module.exports = {
     CollectionRates,
     SchoolYear,
@@ -288,6 +364,7 @@ module.exports = {
     Parents,
     ParentDetails,
     Children,
+    HistoryStatus,
     Classes,
     Receipt,
     Position,
@@ -309,6 +386,12 @@ module.exports = {
     Evaluate,
     Attendance,
     Session,
+    Notification,
+    ChildcareCenter,
+    SchoolTransferHistory,
+    WorkTransferHistory,
+    Allergies,
+    Allergen
 }
 
 

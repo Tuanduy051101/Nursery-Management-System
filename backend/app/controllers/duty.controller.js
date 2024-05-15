@@ -1,22 +1,31 @@
-const {Duty} = require('../models/model');
+const { Duty } = require('../models/model');
 const Error = require('http-errors');
 
 exports.create = async (req, res, next) => {
-    if (Object.keys(req.body).length != 0) {
-        const name = req.body.name;
-        const description = req.body.description;
-        const check = await Duty.find({ name: name });
-        if (check.length != 0) return next(Error(401, 'Already exists'));
-        else {
-            try {
-                const document = await new Duty({ name: name, description: description}).save();
-                res.send([document]);
-            } catch (error) {
-                return next(
-                    Error(500, 'Error saving')
-                )
-            }
-        }
+    const { name, description } = req.body;
+    if (!name) {
+        return res.send({
+            error: true,
+            message: 'Thiếu những trường bắt buộc.'
+        })
+    }
+    const check = await Duty.exists({ name: name });
+    if (check) {
+        return res.send({
+            error: true,
+            message: 'Nhiệm vụ đã tồn tại.'
+        })
+    }
+    try {
+        const document = await Duty.create({ name: name, description: description || 'không có' });
+        res.send({
+            error: false,
+            message: 'Đã tạo thành công.'
+        });
+    } catch (error) {
+        return next(
+            Error(500, 'Error saving')
+        )
     }
 }
 
@@ -45,7 +54,10 @@ exports.deleteAll = async (req, res, next) => {
 exports.delete = async (req, res, next) => {
     try {
         const result = await Duty.findByIdAndDelete(req.params.id);
-        res.send(result);
+        res.send({
+            error: false,
+            message: 'Đã xoá thành công.'
+        });
     } catch (error) {
         return next(
             Error(500, 'Error deleting document')
@@ -60,6 +72,43 @@ exports.find = async (req, res, next) => {
     } catch (error) {
         return next(
             Error(500, 'Error finding document')
+        )
+    }
+}
+
+exports.update = async (req, res, next) => {
+    const { name, description } = req.body;
+    const _id = req.params.id;
+    if (!name) {
+        return res.send({
+            error: true,
+            message: 'Thiếu những trường bắt buộc.'
+        })
+    }
+    const check = await Duty.exists({ name: name });
+    if (check) {
+        const check_info = await Duty.exists({ name: name, description: description });
+        if (!check_info) {
+            const document = await Duty.findByIdAndUpdate(_id, { description: description || 'không có' });
+            return res.send({
+                error: false,
+                message: 'Đã tạo thành công.'
+            });
+        }
+        return res.send({
+            error: true,
+            message: 'Nhiệm vụ đã tồn tại.'
+        })
+    }
+    try {
+        const document = await Duty.findByIdAndUpdate(_id, { name: name, description: description || 'không có' });
+        res.send({
+            error: false,
+            message: 'Đã cập nhật thông tin thành công.'
+        });
+    } catch (error) {
+        return next(
+            Error(500, 'Error saving')
         )
     }
 }

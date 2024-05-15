@@ -12,7 +12,7 @@ exports.create = async (req, res, next) => {
         const check = 0;
         if (check != 0) return res.send({
             error: true,
-            message: 'The foodstuff already exists.'
+            message: 'Thực phẩm đã tồn tại.'
         });
         else {
             try {

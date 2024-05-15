@@ -1,56 +1,160 @@
 <template>
   <!-- Header -->
-  <div class="flex items-center justify-between my-5 mx-5">
+  <p class="text-blue-700 text-base mx-5 mt-5">Bộ lọc tìm kiếm</p>
+  <div class="flex justify-between items-center my-5 mx-5">
+    <inputDate
+      class="w-full text-md"
+      :modelValue="temp_date"
+      :title="const_da"
+      @submit="
+        (value) => {
+          dateValue = value;
+          filtered();
+        }
+      "
+      @refresh="
+        async () => {
+          dateValue = const_da;
+          // dateValue = format_input(new Date());
+          // temp_date = dateValue;
+          await filtered();
+        }
+      "
+      :showClose="true"
+    />
+    <FSelect
+      class="w-full ml-5 text-md"
+      :options="sessionList"
+      :modelValue="temp_session"
+      :title="const_se"
+      @update:modelValue="
+        (value) => {
+          sessionValue = value;
+          filtered();
+        }
+      "
+      @refresh="
+        async () => {
+          sessionValue = const_se;
+          await filtered();
+        }
+      "
+      :showClose="true"
+    />
+    <FSelect
+      class="w-full ml-5 text-md"
+      :options="statusList"
+      :modelValue="const_st"
+      :title="const_st"
+      @update:modelValue="
+        (value) => {
+          statusValue = value;
+          filtered();
+        }
+      "
+      @refresh="
+        async () => {
+          statusValue = const_st;
+          await filtered();
+        }
+      "
+      :showClose="true"
+    />
+  </div>
+  <div class="border border-solid my-5 border-slate-300 border-b-0"></div>
+  <div v-if="item?.name" class="flex items-center justify-between my-5 mx-5">
     <div class="w-6/12 flex">
       <FSelect
-        class="w-20"
-        :options="[
-          { _id: 5, name: 5 },
-          { _id: 10, name: 10 },
-          { _id: 20, name: 20 },
-          { _id: 30, name: 30 },
-          { _id: 40, name: 40 },
-          { _id: 50, name: 50 },
-        ]"
+        style="width: 105px"
+        :options="option_entry"
         :modelValue="entryValue"
-        v-model="entryValue"
+        :title="`Số bản ghi`"
+        @update:modelValue="
+          async (value) => {
+            currentPage = 1;
+            if (value != 'other') {
+              entryValue = value;
+            } else {
+              entryValue = await alert_input_1(
+                'number',
+                '',
+                'Enter the number of records per page.'
+              );
+            }
+          }
+        "
       />
-      <FSelect
+      <!-- <FSelect
         class="w-28 mx-5"
-        :options="[
-          { _id: 0, name: 'auto' },
-          { _id: 1, name: 'fixed' },
-        ]"
+        :options="option_mode"
         :modelValue="`auto`"
+        :title="`Display`"
         v-model="mode"
+      /> -->
+      <FSearch
+        class="flex-1 ml-5 h-full"
+        @search="
+          (value) => {
+            searchText = value;
+            currentPage = 1;
+          }
+        "
+        :title="searchWith.name"
+        @searchWith="(value) => (searchWith = value)"
+        :optionSearch="searchOption"
       />
-      <input
+      <!-- <input
         type="date"
         v-model="date"
         class="w-40 bg-inherit flex items-center border border-solid border-slate-600 rounded-md px-2 text-slate-300 focus:border-slate-300"
-      />
+      /> -->
     </div>
-    <div class="flex-1 flex">
-      <FSearch class="flex-1 mx-5" v-model="searchText" />
-      <BSave @click="create()" />
+    <div class="flex-1 flex justify-end h-full">
+      <button
+        v-if="role == 'System Administration'"
+        @click="activeAdd = true"
+        class="h-10 border border-solid border-blue-500 bg-blue-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+      >
+        Thêm buổi
+      </button>
+      <button
+        @click="_activeAdd = true"
+        class="border h-10 border-solid border-blue-500 px-3 bg-blue-500 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50 mx-5"
+        type="button"
+      >
+        Thêm điểm danh
+      </button>
+      <button
+        v-if="activeEdit == true"
+        class="border border-solid border-orange-500 bg-orange-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+        @click="edit"
+      >
+        Lưu điểm danh
+      </button>
+      <button
+        v-if="activeEdit == false"
+        class="border border-solid border-yellow-500 bg-yellow-500 px-3 text-white rounded-md hover:shadow-lg hover:shadow-yellow-500/50"
+        type="button"
+        @click="activeEdit = true"
+      >
+        Cập nhật điểm danh
+      </button>
     </div>
   </div>
   <Table
     :items="setPages"
-    :fields="[
-      'Children',
-      'Gender',
-      'Age',
-      'Address',
-      'Parents',
-      'Start time',
-      'reason',
-      'End time',
-      'reason',
-    ]"
-    :labels="['name', 'gender', 'age', 'address']"
+    :fields="['Tên trẻ', 'Giới tính', 'Trạng thái', 'Lý do']"
+    :labels="
+      activeEdit
+        ? ['child_name', 'child_gender', 'status', 'reason']
+        : ['child_name', 'child_gender', 'statusValue', 'reasonValue']
+    "
+    :wrap-list="[false, false, false, false, false, true]"
     :mode="mode"
-    @deleteItem="(value) => (deleteValue = value)"
+    :showAction="[false, false, false]"
+    :startRow="startRow"
   />
   <Pagination
     :numberOfPages="numberOfPages"
@@ -59,451 +163,336 @@
     :endRow="endRow"
     v-model:currentPage="currentPage"
   />
+  <FormSession
+    v-if="activeAdd"
+    :itemAdd="itemAdd"
+    :title="`Thêm buổi mới`"
+    @cancel="(value) => (activeAdd = value)"
+    @submit="create_session()"
+  />
+  <FormAttendance
+    v-if="_activeAdd"
+    :itemAdd="_itemAdd"
+    :title="`Thêm điểm danh mới`"
+    @cancel="(value) => (_activeAdd = value)"
+    @submit="create_attendance()"
+  />
 </template>
 
-<script>
-import BAdd from "../../../../components/buttons/Add.vue";
-import BEdit from "../../../../components/buttons/Edit.vue";
-import BSave from "../../../../components/buttons/Save.vue";
-import BDelete from "../../../../components/buttons/Delete.vue";
-import BCancel from "../../../../components/buttons/Cancel.vue";
-import FSelect from "../../../../components/forms/Select.vue";
-import FSearch from "../../../../components/forms/Search.vue";
-import Table from "../../../../components/TableAttendance.vue";
-import Pagination from "../../../../components/Pagination.vue";
-import FormOne from "../../../../components/forms/FormOne.vue";
-import FormChildren from "../../../../components/forms/FormChildren.vue";
-import Children from "../../../../services/children.service";
-import Classes from "../../../../services/classes.service";
-import Attendance from "../../../../services/attendance.service";
-import Parents from "../../../../services/parents.service";
-import ParentDetails from "../../../../services/parentDetails.service";
-import ASuccess from "../../../../components/alerts/Success.vue";
-import Swal from "sweetalert2";
+<script setup>
+import {
+  // service
+  Account,
+  Assignment,
+  Attendance,
+  CDI,
+  Children,
+  Classes,
+  CollectionRates,
+  Diploma,
+  Dish,
+  Duty,
+  Evaluate,
+  Foodstuff,
+  Grade,
+  Ingredient,
+  Meal,
+  MealTicket,
+  Month,
+  Parents,
+  ParentDetails,
+  Payment,
+  PaymentDetail,
+  Position,
+  Receipt,
+  SchoolYear,
+  Teacher,
+  TuitionFees,
+  // vue composition
+  ref,
+  reactive,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  provide,
+  inject,
+  onBeforeMount,
+  defineProps,
+  // vue router
+  useRoute,
+  useRouter,
+  // vee-validate
+  Form,
+  Field,
+  ErrorMessage,
+  yup,
+  // Swal
+  Swal,
+  // components
+  Navbar,
+  Sidebar,
+  Footer,
+  Login,
+  BAdd,
+  BEdit,
+  BDelete,
+  BCancel,
+  FSelect,
+  FSearch,
+  Table,
+  Pagination,
+  FormOne,
+  ASuccess,
+  FormChildren,
+  ChildrenList,
+  CDIList,
+  MealTicketList,
+  AttendanceList,
+  ReceiptList,
+  FormSession,
+  FormAttendance,
+  inputDate,
+  // alert
+  alert_error,
+  alert_warning,
+  alert_success,
+  run_alert,
+  alert_input_1,
+  alert_remove,
+  // https
+  http_getAll,
+  http_getOne,
+  http_deleteOne,
+  http_create,
+  http_update,
+  // format money
+  formatCurrencyVND,
+  convertToWords,
+  // format date-time
+  formatDate,
+  formatDateTime,
+  formatDateTime_2,
+  formatDateReverse,
+  format_input,
+  getpreviousDate,
+  Session,
+} from "../../../../assets/js/imports";
+//
+import {
+  items,
+  items_cp,
+  item,
+  background,
+  searchText,
+  searchWith,
+  searchOption,
+  entryValue,
+  typing_entry,
+  option_entry,
+  mode,
+  option_mode,
+  numberOfPages,
+  totalRow,
+  startRow,
+  endRow,
+  currentPage,
+  activeAdd,
+  activeEdit,
+  deleteValue,
+  setPages,
+  gradeList,
+  schoolYearList,
+  tuitionFeesList,
+  gradeValue,
+  schoolYearValue,
+  tuitionFeesValue,
+  filter_grade,
+  filter_schoolYear,
+  filter_tuitionFees,
+  backup_items,
+  restore_items,
+  restore_filter,
+  modelValue_schoolYear,
+  ageList,
+  ageValue,
+  filter_age,
+  genderList,
+  genderValue,
+  filter_gender,
+  const_sy,
+  const_gr,
+  const_tf,
+  const_ge,
+  const_ag,
+  filters,
+  const_da,
+  const_st,
+  const_se,
+  dateValue,
+  sessionList,
+  sessionValue,
+  statusList,
+  statusValue,
+  resetFilter,
+  reset,
+  getHours,
+} from "../../../../components/common/index.js";
 
-export default {
-  components: {
-    BAdd,
-    BEdit,
-    BDelete,
-    BCancel,
-    FSelect,
-    FSearch,
-    Table,
-    Pagination,
-    FormOne,
-    ASuccess,
-    FormChildren,
-    BSave,
+const props = defineProps({
+  classId: {
+    type: String,
+    required: true,
   },
-  props: {
-    classId: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      // data
-      items: [],
-      item: {},
-      attendance: [],
-      // search
-      searchText: "",
-      // entry
-      entryValue: 10,
-      // table
-      mode: "auto",
-      // pagination
-      numberOfPages: 1,
-      totalRow: 0,
-      startRow: 0,
-      endRow: 0,
-      currentPage: 1,
-      // add
-      activeAdd: false,
-      parentsAdd: {
-        name: "",
-        gender: true,
-        phone: "",
-        email: "",
-        address: "",
-        relationship: "bố",
-        parents: "",
-      },
-      childAdd: {
-        name: "",
-        gender: true,
-        birthday: "",
-        address: "",
-        parentDetails: "",
-        warning: true,
-      },
-      background: "rgb(51 65 85 / var(--tw-bg-opacity))",
-      // delete
-      deleteValue: "",
-      classes: {},
-      date: this.setDate(true),
+});
+const role = ref("");
+role.value = sessionStorage.getItem("role");
+const _activeAdd = ref(false);
+const itemAdd = ref({
+  name: "",
+  startTime: "",
+  endTime: "",
+});
+
+const _itemAdd = ref({
+  date: formatDateReverse(),
+  session: "",
+  children: "",
+  classes: "",
+});
+
+searchOption.value = [{ _id: "_child_name", name: "Tìm kiếm theo tên trẻ" }];
+
+const create_session = async () => {
+  const result = await http_create(Session, itemAdd.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    run_alert(alert_success(result.message));
+    activeAdd.value = false;
+    itemAdd.value = {
+      name: "",
+      startTime: "",
+      endTime: "",
     };
-  },
-  watch: {
-    async deleteValue() {
-      await this.get();
-      await this.delete();
-      await this.refresh();
-    },
-
-    classId() {
-      this.refresh();
-    },
-
-    date() {
-      // this.items = this.items.filter(
-      //   (value, index) => {
-      //     console.log(value.date);
-      //     console.log(this.formatDate(this.date));
-      //     return value.date == this.formatDate(this.date);
-      //   }
-      // )
-      this.refresh();
-    },
-  },
-  computed: {
-    toString() {
-      return this.items.map((item, index) => {
-        return [item.name].join("");
-      });
-    },
-
-    filter() {
-      return this.items.filter((item, index) => {
-        return this.toString[index].includes(
-          this.searchText.toLocaleLowerCase()
-        );
-      });
-    },
-
-    filtered() {
-      if (!this.searchText) {
-        this.totalRow = this.items.length;
-        return this.items;
-      } else {
-        this.totalRow = this.filter.length;
-        return this.filter;
-      }
-    },
-
-    setNumberOfPages() {
-      return Math.ceil(this.filtered.length / this.entryValue);
-    },
-
-    setPages() {
-      if (this.setNumberOfPages == 0) this.numberOfPages = 1;
-      else this.numberOfPages = this.setNumberOfPages;
-
-      this.startRow = (this.currentPage - 1) * this.entryValue + 1;
-      this.endRow = this.currentPage * this.entryValue;
-
-      return this.filtered.filter((item, index) => {
-        return (
-          index + 1 > (this.currentPage - 1) * this.entryValue &&
-          index + 1 <= this.currentPage * this.entryValue
-        );
-      });
-    },
-  },
-  methods: {
-    async getAll() {
-      try {
-        this.items = await Children.getAll();
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    async getAllAttendance() {
-      try {
-        this.attendance = await Attendance.getAll();
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    async getClass() {
-      try {
-        const temp = await Classes.getAll(this.classId);
-        this.classes = temp[0];
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    async get() {
-      try {
-        this.item = await Children.get(this.deleteValue);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-
-    formatDate(value) {
-      let date = new Date(value);
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      return year + "-" + month + "-" + day;
-    },
-
-    setDate(standard = false) {
-      let date = new Date();
-
-      let day = date.getDate(),
-        month = date.getMonth() + 1,
-        year = date.getFullYear();
-
-      if (standard) {
-        if (month < 10) {
-          return year + "-" + '0' + month + "-" + day;
-        }
-      }
-
-      return year + "-" + month + "-" + day;
-    },
-
-    formatTable() {
-      this.items = this.items.map((item, index) => {
-        this.attendance = this.attendance.filter((value, index) => {
-          return value.date == this.formatDate(this.date);
-        });
-
-        console.log(item);
-        console.log(item.address);
-
-        return {
-          _id: item._id,
-          name: item.name,
-          gender: item.gender,
-          birthday: item.birthday,
-          age: new Date().getFullYear() - new Date(item.birthday).getFullYear(),
-          address: item.address,
-          parentsName: item.parentDetails[0].name,
-          parentsPhone: item.parentDetails[0].phone,
-          classes: item.classes,
-          date: this.setDate(),
-        };
-      });
-
-      this.items = this.items.filter((value, index) => {
-        var check = false;
-        for (var i = 0; i < value.classes.length; i++) {
-          if (value.classes[i]._id == this.classId) {
-            check = true;
-            // console.log("abc");
-            break;
-          }
-        }
-        if (check == true) return true;
-        else return false;
-      });
-
-      this.items = this.items.map((item, index) => {
-        var reasonS = "",
-          reasonE = "",
-          startTime = true,
-          endTime = true;
-        for (var value of this.attendance) {
-          if (value.child == item._id) {
-            if (value.time == false) {
-              console.log("1");
-              reasonE = value.reason;
-              endTime = value.present;
-            } else if (value.time == true) {
-              console.log("2");
-              reasonS = value.reason;
-              startTime = value.present;
-            }
-          }
-          console.log(reasonS, reasonE, startTime, endTime);
-        }
-        return {
-          _id: item._id,
-          name: item.name,
-          gender: item.gender,
-          birthday: item.birthday,
-          age: new Date().getFullYear() - new Date(item.birthday).getFullYear(),
-          address: item.address,
-          parentsName: item.parentsName,
-          parentsPhone: item.parentsPhone,
-          classes: item.classes,
-          startTime: startTime,
-          endTime: endTime,
-          reasonS: reasonS,
-          reasonE: reasonE,
-          date: this.setDate(),
-        };
-      });
-    },
-
-    async refresh() {
-      await this.getAll();
-      await this.getAllAttendance();
-      await this.formatTable();
-      await this.getClass();
-    },
-
-    async delete() {
-      const option = Swal.fire({
-        background: this.background,
-        color: "white",
-        icon: "warning",
-        html:
-          "<p>I want to delete" +
-          ' "' +
-          '<span class="text-blue-500 text-lg">' +
-          this.item.name +
-          "</span>" +
-          '"' +
-          "</p>",
-        showCancelButton: true,
-        showConfirmButton: true,
-        confirmButtonText: "Delete",
-        confirmButtonColor: "red",
-        reverseButtons: true,
-      });
-
-      if ((await option).isConfirmed) {
-        try {
-          await Classes.update(this.classId, {
-            child: this.deleteValue,
-            object: "delete",
-          });
-          Swal.fire({
-            background: this.background,
-            color: "white",
-            text: "Successfull delete",
-            icon: "success",
-            timer: 2000,
-          });
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    },
-
-    async create() {
-      /* inputOptions can be an object or Promise */
-      const inputOptions = new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            true: "start time",
-            false: "end time",
-          });
-        }, 1000);
-      });
-
-      const { value: time } = await Swal.fire({
-        title: "Select time",
-        input: "radio",
-        inputOptions: inputOptions,
-        // background: this.background,
-        // color: "white",
-        inputValidator: (value) => {
-          if (!value) {
-            return "You need to choose something!";
-          }
-        },
-      });
-
-      if (time) {
-        if (time == "true") {
-          try {
-            let i = 0;
-            for (var value of this.setPages) {
-              i++;
-
-              const check = await Attendance.checkUpdate({
-                classes: this.classId,
-                time: true,
-                child: value._id,
-                date: value.date,
-              });
-
-              if (check.found == true) {
-                await Attendance.update(check.message._id, {
-                  present: value.startTime,
-                  reason: value.reasonS,
-                });
-              } else {
-                const attendance = await Attendance.create({
-                  classes: this.classId,
-                  time: true,
-                  child: value._id,
-                  reason: value.reasonS,
-                  present: value.startTime,
-                  date: value.date,
-                });
-              }
-            }
-            if (i == this.setPages.length) {
-              Swal.fire({
-                background: this.background,
-                color: "white",
-                text: "Successfull saved",
-                icon: "success",
-                timer: 2000,
-              });
-            }
-          } catch (error) {}
-        } else if (time == "false") {
-          try {
-            let i = 0;
-            for (var value of this.setPages) {
-              i++;
-              const check = await Attendance.checkUpdate({
-                classes: this.classId,
-                time: false,
-                child: value._id,
-                date: value.date,
-              });
-
-              console.log("CLM");
-
-              if (check.found == true) {
-                await Attendance.update(check.message._id, {
-                  present: value.endTime,
-                  reason: value.reasonE,
-                });
-              } else {
-                const attendance = await Attendance.create({
-                  classes: this.classId,
-                  time: false,
-                  child: value._id,
-                  reason: value.reasonE,
-                  present: value.endTime,
-                  date: value.date,
-                });
-              }
-            }
-            if (i == this.setPages.length) {
-              Swal.fire({
-                background: this.background,
-                color: "white",
-                text: "Successfull saved",
-                icon: "success",
-                timer: 2000,
-              });
-            }
-          } catch (error) {}
-        }
-      }
-
-      await this.refresh();
-    },
-  },
-  async created() {
-    await this.refresh();
-  },
+    sessionList.value = await http_getAll(Session);
+    await refresh();
+  }
 };
+
+const create_attendance = async () => {
+  _itemAdd.value.classes = props.classId;
+  const result = await http_create(Attendance, _itemAdd.value);
+  if (result.error) run_alert(alert_error(result.message));
+  if (!result.error) {
+    await refresh();
+    run_alert(alert_success(result.message));
+    _activeAdd.value = false;
+    _itemAdd.value.session = "";
+  }
+};
+
+const edit = async () => {
+  items.value.forEach(async (value) => {
+    const result = await http_update(Attendance, value._id, {
+      reason: value.reason,
+      present: value.status,
+    });
+  });
+  activeEdit.value = false;
+  run_alert(alert_success(`Đã lưu thành công.`));
+  await refresh();
+};
+
+const filtered = async () => {
+  await refresh();
+  filters();
+  currentPage.value = 1;
+};
+
+const refresh = async () => {
+  if (props.classId) {
+    item.value = await http_getOne(Classes, props.classId);
+    item.value = item.value[0];
+    items.value = item.value.attendance.map((value) => ({
+      ...value,
+      child_name: value.child.name,
+      _child_name: value.child.name,
+      child_gender: value.child.gender == true ? "name" : "nữ",
+      status: value.present,
+      statusValue: value.present == "false" ? "vắng mặt" : "có mặt",
+      reason: value.reason,
+      reasonValue: value.reason,
+      date_format: formatDate(value.date),
+      session_format: `${value.session.startTime} - ${value.session.endTime} ( ${value.session.name} )`,
+    }));
+    filters();
+
+    _itemAdd.value.children = item.value.children.map((item) => item._id);
+  }
+};
+
+const temp_date = ref("");
+const temp_session = ref("");
+const childcareCenter = ref(sessionStorage.getItem("owner_childcareCenter"));
+
+onBeforeMount(async () => {
+  reset();
+  dateValue.value = format_input(new Date());
+  temp_date.value = dateValue.value;
+  await refresh();
+  if (props.classId) {
+    const temp = await http_getOne(Classes, props.classId);
+    while (items.value.length == 0 && temp[0].attendance.length != 0) {
+      dateValue.value = getpreviousDate(temp_date.value);
+      temp_date.value = dateValue.value;
+      await refresh();
+    }
+  }
+  sessionList.value = await http_getAll(Session);
+  sessionList.value = sessionList.value.filter((i) =>
+    i.childcareCenter.some(
+      (j) => j._id == sessionStorage.getItem("owner_childcareCenter")
+    )
+  );
+  let hoursCurent = parseInt(getHours());
+  do {
+    console.log(sessionList.value[0]);
+    const temp = sessionList.value.filter(
+      (i) => i.startTime.split(":")[0] == hoursCurent.toString()
+    );
+    if (temp.length == 1) {
+      sessionValue.value = temp[0]._id;
+      temp_session.value = `${temp[0].startTime} - ${temp[0].endTime} ( ${temp[0].name})`;
+      filters();
+    } else {
+      if (hoursCurent > 21) {
+        sessionValue.value =
+          sessionList.value[sessionList.value.length - 1]._id;
+        temp_session.value = `${
+          sessionList.value[sessionList.value.length - 1].startTime
+        } - ${sessionList.value[sessionList.value.length - 1].endTime} ( ${
+          sessionList.value[sessionList.value.length - 1].name
+        })`;
+        filters();
+      } else {
+        hoursCurent += 1;
+      }
+    }
+  } while (temp_session.value.length == 0);
+  sessionList.value = sessionList.value.map((item) => ({
+    _id: item._id,
+    name: `${item.startTime} - ${item.endTime} ( ${item.name} )`,
+  }));
+  statusList.value = [
+    {
+      _id: "true",
+      name: "có mặt",
+    },
+    {
+      _id: "false",
+      name: "vắng mặt",
+    },
+  ];
+});
 </script>

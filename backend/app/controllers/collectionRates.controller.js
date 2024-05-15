@@ -8,7 +8,7 @@ exports.create = async (req, res, next) => {
         if (!money || !tuitionFees || !grade || !schoolYear) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
 
@@ -21,7 +21,7 @@ exports.create = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists!'
+                message: 'Mức thu đã tồn tại.'
             });
         }
         const document = await CollectionRates.create({
@@ -39,7 +39,7 @@ exports.create = async (req, res, next) => {
 
         return res.send({
             error: false,
-            message: 'Successfully created.'
+            message: 'Đã tạo thành công.'
         });
     } catch (error) {
         return next(Error(500, 'Error saving'));
@@ -68,7 +68,7 @@ exports.delete = async (req, res, next) => {
 
         res.send({
             error: false,
-            message: 'Successfully deleted.'
+            message: 'Đã xoá thành công.'
         });
     } catch (error) {
         return next(Error(500, 'Error deleting document'));
@@ -100,7 +100,7 @@ exports.update = async (req, res, next) => {
         if (!money) {
             return res.send({
                 error: true,
-                message: 'Missing required fields.'
+                message: 'Thiếu những trường bắt buộc.'
             })
         }
 
@@ -112,14 +112,14 @@ exports.update = async (req, res, next) => {
         if (check) {
             return res.send({
                 error: true,
-                message: 'Already exists!'
+                message: 'Mức thu đã tồn tại.'
             });
         }
         await CollectionRates.findByIdAndUpdate(_id, { money });
 
         return res.send({
             error: false,
-            message: 'Successfully updated.'
+            message: 'Đã cập nhật thông tin thành công.'
         });
     } catch (error) {
         return next(Error(500, 'Error saving'));

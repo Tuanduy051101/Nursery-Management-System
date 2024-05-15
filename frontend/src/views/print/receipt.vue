@@ -1,101 +1,13 @@
 <template>
   <div
-    class="fixed top-0 right-0 w-screen h-screen z-50 flex items-center justify-center"
+    id="pdfContent"
+    class="w-screen h-screen flex items-center justify-center"
     style="
       font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     "
   >
-    <div class="bg-slate-800 h-screen opacity-70 flex-1 relative"></div>
-    <div
-      class="bg-white mx-5 overflow-auto absolute shadow-xl border border-solid border-slate-300"
-      style="height: 20.99cm; width: 29.7cm"
-    >
-      <div class="flex justify-between items-center mx-10">
-        <img
-          src="../../assets/images/logo.png"
-          alt=""
-          style="width: 150px"
-          class=""
-        />
-        <span
-          class="text-2xl font-bold"
-          style="
-            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman',
-              serif;
-          "
-          >Biên Lai Thu Học Phí</span
-        >
-        <div class="flex flex-col">
-          <span
-            style="
-              font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman',
-                serif;
-            "
-            >Mẫu số: 012345/001</span
-          >
-          <span
-            style="
-              font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman',
-                serif;
-            "
-            >Ký hiệu: VA/12A</span
-          >
-          <span
-            style="
-              font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman',
-                serif;
-            "
-            >Số: 01</span
-          >
-        </div>
-      </div>
-      <p class="mx-10">Đơn vị thu tiền: Trường Mầm Non KeyOne</p>
-      <div class="flex justify-between mx-10">
-        <div class="flex flex-col">
-          <p class="py-2">Họ tên trẻ: {{ receipt.child.name }}</p>
-          <p class="py-2">
-            Giới tính: {{ receipt.child.gender ? "Nam" : "Nữ" }}
-          </p>
-          <p class="py-2">Ngày sinh: {{ receipt.child.birthday }}</p>
-          <p class="py-2">Tổng số tiền: {{ formatMoney(receipt.total) }}</p>
-        </div>
-        <div class="flex flex-col">
-          <p class="py-2">Địa chỉ: {{ receipt.child.address }}</p>
-          <p class="py-2">Lớp: {{ receipt.classes.name }}</p>
-          <p class="py-2">Năm học: {{ receipt.classes.schoolYear.name }}</p>
-          <p class="py-2">Số tiền bằng chữ: {{ money }}</p>
-        </div>
-      </div>
-      <div class="mx-10 mt-5">
-        <table class="border-collapse w-full table-auto">
-          <thead>
-            <tr class="border border-solid border-slate-600 uppercase text-base font-bold">
-              <th class=""><span class="float-left py-2 px-3">STT</span></th>
-              <th class=""><span class="float-left">Khoản Thu</span></th>
-              <th class=""><span class="float-left">Mức Thu</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border border-solid border-slate-600 uppercase text-base" v-for="(value, index) in collectionRates">
-              <td><span class="float-left py-2 px-3">{{ index+1 }}</span></td>
-              <td><span>{{ value.tuition }}</span></td>
-              <td>{{ value.money }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="flex justify-end mx-10 mt-5">ngày {{ date }} tháng {{ month }} năm {{ year }}</p>
-      <div class="mt-5 flex justify-between mx-10">
-        <div class="flex flex-col items-center">
-          <span class="pb-2">Người nộp tiền</span>
-          <span>(Ký và ghi rõ họ tên)</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <span class="pb-2">Người nhận tiền</span>
-          <span>(Ký và ghi rõ họ tên)</span>
-        </div>
-      </div>
-    </div>
+  <p>anh hjdgfhgdfg hjgfhgdhfghdgfg hjgfhdghfggdjjfgdg hjgdfhgdh</p>
+    
   </div>
 </template>
 

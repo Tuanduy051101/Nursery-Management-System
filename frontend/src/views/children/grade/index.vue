@@ -1,12 +1,12 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md">
+  <div class="border border-solid border-slate-300 rounded-md">
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
         <FSelect
           style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
-          :title="`Record`"
+          :title="`Số bản ghi`"
           @update:modelValue="
             async (value) => {
               currentPage = 1;
@@ -21,13 +21,13 @@
             }
           "
         />
-        <FSelect
+        <!-- <FSelect
           class="w-28 mx-5"
           :options="option_mode"
           :modelValue="`auto`"
           :title="`Display`"
           v-model="mode"
-        />
+        /> -->
       </div>
       <div class="flex-1 flex">
         <FSearch
@@ -47,14 +47,19 @@
     </div>
     <Table
       :items="setPages"
-      :fields="['Grade', 'Description', 'Amount classes', 'Collection Rates']"
-      :labels="['name', 'description', 'totalClass', 'totalCollectionRates']"
+      :fields="['Tên khối', 'Mô tả']"
+      :labels="[
+        'name',
+        'description',
+      ]"
+      :wrap-list="[false, true]"
       :mode="mode"
       :startRow="startRow"
+      :show-action="[false, true, true]"
       @delete="(value) => remove(value)"
       @edit="
         async (value) => {
-          item = await http_getOne(TuitionFees, value);
+          item = await http_getOne(Grade, value);
           activeEdit = true;
         }
       "
@@ -67,20 +72,26 @@
       v-model:currentPage="currentPage"
     />
   </div>
-  <FormOne
+  <FormGrade
     v-if="activeAdd"
     :item="itemAdd"
     :name="`grade`"
-    :title="`Add a new grade`"
+    :title="`Thêm khối mới`"
     :placeholder="`Add a new grade`"
-    @cancel="(value) => (activeAdd = value)"
+    @cancel="
+      (value) => {
+        itemAdd.name = '';
+        itemAdd.description = '';
+        activeAdd = value;
+      }
+    "
     @submit="create()"
   />
-  <FormOne
+  <FormGrade
     v-if="activeEdit"
     :item="item"
     :name="`grade`"
-    :title="`Edit a grade`"
+    :title="`Sửa thông tin khối`"
     :buttonName="`Edit`"
     @cancel="(value) => (activeEdit = value)"
     @submit="edit()"
@@ -151,6 +162,7 @@ import {
   Table,
   Pagination,
   FormOne,
+  FormGrade,
   ASuccess,
   // alert
   alert_error,
@@ -168,6 +180,8 @@ import {
   // format money
   formatCurrencyVND,
   convertToWords,
+  ChildcareCenter,
+  verifyToken,
 } from "../../../assets/js/imports";
 //
 import {
@@ -191,14 +205,20 @@ import {
   activeEdit,
   deleteValue,
   setPages,
+  reset,
+  const_childcareCenter,
+  childcareCenterValue,
+  childcareCenterList,
+  filters,
 } from "../../../components/common/index.js";
 
 const itemAdd = ref({
   name: "",
   description: "",
+  childcareCenter: sessionStorage.getItem("owner_childcareCenter"),
 });
 
-searchOption.value = [{ _id: "name", name: "Search by name" }];
+searchOption.value = [{ _id: "name", name: "Tìm kiếm theo tên khối" }];
 
 const create = async () => {
   const result = await http_create(Grade, itemAdd.value);
@@ -207,6 +227,8 @@ const create = async () => {
     run_alert(alert_success(result.message));
     activeAdd.value = false;
     refresh();
+    itemAdd.name = "";
+    itemAdd.description = "";
   }
 };
 
@@ -223,19 +245,19 @@ const edit = async () => {
 const remove = async (item) => {
   const deleteList = items.value.filter((item) => item.checked);
   if (deleteList.length != 0) {
-    const isRemove = await alert_remove(deleteList, ["Grade"], ["name"]);
+    const isRemove = await alert_remove(deleteList, ["Tên khối"], ["name"]);
     deleteList.forEach(async (item) => {
       if (isRemove) {
         const result = await http_deleteOne(Grade, item._id);
       }
     });
     if (isRemove) {
-      run_alert(alert_success("Successfully deleted."));
+      run_alert(alert_success("Đã xoá thành công."));
       refresh();
     }
   }
   if (deleteList.length == 0) {
-    const isRemove = await alert_remove([item], ["Grade"], ["name"]);
+    const isRemove = await alert_remove([item], ["Tên khối"], ["name"]);
     if (isRemove) {
       const result = await http_deleteOne(Grade, item._id);
       if (!result.error) {
@@ -258,7 +280,37 @@ const refresh = async () => {
   }));
 };
 
+const refreshFilter = async () => {
+  items.value = await http_getAll(Grade);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    totalClass: item.classes.length,
+    totalCollectionRates: formatCurrencyVND(
+      item.collectionRates.reduce((acc, r) => acc + r.money, 0)
+    ),
+  }));
+};
+
+const filtered = async () => {
+  await refreshFilter();
+  filters();
+  currentPage.value = 1;
+};
+
+const temp_childcareCenter = ref("");
+const isToken = ref("");
+const childcareCenter = ref(sessionStorage.getItem("owner_childcareCenter"));
+const childcareCenterName = ref(
+  sessionStorage.getItem("owner_childcareCenterName")
+);
+
 onBeforeMount(async () => {
-  refresh();
+  isToken.value = await verifyToken();
+  reset();
+  await refresh();
+  childcareCenterValue.value = childcareCenter;
+  temp_childcareCenter.value = childcareCenterName.value;
+  childcareCenterList.value = await http_getAll(ChildcareCenter);
 });
 </script>

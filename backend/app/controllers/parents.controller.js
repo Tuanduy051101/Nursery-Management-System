@@ -1,16 +1,46 @@
 // checked
 
-const { Parents } = require('../models/model');
+const { Parents, ParentDetails, Children } = require('../models/model');
 const Error = require('http-errors');
 
 exports.create = async (req, res, next) => {
+    console.log(req.body);
     try {
-        const document = await new Parents({
-        }).save();
+        const { name, gender, phone, email, address, relationship, child } = req.body;
+
+        if (!name || !gender || !phone || !email || !address || !child) {
+            return res.send({
+                error: true,
+                message: 'Missing required fields.'
+            })
+        }
+
+        const check = await ParentDetails.exists({
+            child: child,
+            name: name,
+            phone: phone,
+            email: email,
+        });
+
+        if (check) {
+            return res.send({
+                error: true,
+                message: 'Already exists.'
+            })
+        }
+
+        const new_parent = await Parents.create({});
+
+        req.body.parents = new_parent._id;
+
+        const document = await ParentDetails.create(req.body);
+
+        await Children.findByIdAndUpdate(child, { $push: { parentDetails: document._id } });
+        await Parents.findByIdAndUpdate(new_parent._id, { $push: { parentDetails: document._id } })
 
         return res.send({
             error: false,
-            message: [document]
+            message: 'Successfully created.'
         });
     } catch (error) {
         return next(

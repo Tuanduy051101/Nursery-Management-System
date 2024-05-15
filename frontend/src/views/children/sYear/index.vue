@@ -1,5 +1,5 @@
 <template>
-  <div class="border border-solid border-slate-600 rounded-md">
+  <div class="border border-solid border-slate-300 rounded-md">
     <!-- Header -->
     <div class="flex items-center justify-between my-5 mx-5">
       <div class="w-6/12 flex">
@@ -7,7 +7,7 @@
           style="width: 105px"
           :options="option_entry"
           :modelValue="entryValue"
-          :title="`Record`"
+          :title="`Số bàn ghi`"
           @update:modelValue="
             async (value) => {
               if (value != 'other') {
@@ -23,12 +23,32 @@
           "
         />
         <FSelect
+          v-if="isToken"
+          class="w-full text-md ml-5"
+          :options="childcareCenterList"
+          :modelValue="temp_childcareCenter"
+          :title="const_childcareCenter"
+          @update:modelValue="
+            async (value) => {
+              childcareCenterValue = value;
+              await filtered();
+            }
+          "
+          @refresh="
+            async () => {
+              childcareCenterValue = const_childcareCenter;
+              await filtered();
+            }
+          "
+          :showClose="true"
+        />
+        <!-- <FSelect
           class="w-28 mx-5"
           :options="option_mode"
           :modelValue="`auto`"
           :title="`Display`"
           v-model="mode"
-        />
+        /> -->
       </div>
       <div class="flex-1 flex">
         <FSearch
@@ -48,8 +68,22 @@
     </div>
     <Table
       :items="setPages"
-      :fields="['School year', 'Amount classes', 'Collection Rates']"
-      :labels="['name', 'totalClass', 'totalCollectionRates']"
+      :fields="[
+        'Tên năm học',
+        'Ngày bắt đầu',
+        'Ngày kết thúc',
+        'Tên nhà trẻ',
+        'Địa chỉ',
+      ]"
+      :labels="[
+        'name',
+        'startDateFormat',
+        'endDateFormat',
+        'childcareCenterName',
+        'childcareCenterAddress',
+      ]"
+      :wrap-list="[false, false, false, true, true]"
+      :show-action="[false, true, true]"
       :mode="mode"
       :startRow="startRow"
       @delete="(value) => remove(value)"
@@ -68,18 +102,25 @@
       v-model:currentPage="currentPage"
     />
   </div>
-  <FormOne
+  <FormSchoolYear
     v-if="activeAdd"
     :item="itemAdd"
-    :title="`Add A New School Year`"
+    :title="`Thêm năm học mới`"
     :placeholder="`Add a new School Year`"
-    @cancel="(value) => (activeAdd = value)"
+    @cancel="
+      (value) => {
+        itemAdd.name = '';
+        itemAdd.startDate = '';
+        itemAdd.endDate = '';
+        activeAdd = value;
+      }
+    "
     @submit="create()"
   />
-  <FormOne
+  <FormSchoolYear
     v-if="activeEdit"
     :item="item"
-    :title="`Edit a school year`"
+    :title="`Sửa thông tin năm học`"
     :buttonName="`Edit`"
     @cancel="(value) => (activeEdit = value)"
     @submit="edit()"
@@ -150,6 +191,7 @@ import {
   Table,
   Pagination,
   FormOne,
+  FormSchoolYear,
   ASuccess,
   // alert
   alert_error,
@@ -167,6 +209,9 @@ import {
   // format money
   formatCurrencyVND,
   convertToWords,
+  formatDate,
+  ChildcareCenter,
+  verifyToken,
 } from "../../../assets/js/imports";
 //
 import {
@@ -190,13 +235,21 @@ import {
   activeEdit,
   deleteValue,
   setPages,
+  reset,
+  const_childcareCenter,
+  childcareCenterValue,
+  childcareCenterList,
+  filters,
 } from "../../../components/common/index.js";
 
 const itemAdd = ref({
   name: "",
+  startDate: "",
+  endDate: "",
+  childcareCenter: sessionStorage.getItem("owner_childcareCenter"),
 });
 
-searchOption.value = [{ _id: "name", name: "Search by name" }];
+searchOption.value = [{ _id: "name", name: "Tìm kiếm theo tên năm học" }];
 
 const create = async () => {
   const result = await http_create(SchoolYear, itemAdd.value);
@@ -205,6 +258,9 @@ const create = async () => {
     run_alert(alert_success(result.message));
     activeAdd.value = false;
     refresh();
+    itemAdd.name = "";
+    itemAdd.startDate = "";
+    itemAdd.endDate = "";
   }
 };
 
@@ -221,19 +277,19 @@ const edit = async () => {
 const remove = async (item) => {
   const deleteList = items.value.filter((item) => item.checked);
   if (deleteList.length != 0) {
-    const isRemove = await alert_remove(deleteList, ["SchoolYear"], ["name"]);
+    const isRemove = await alert_remove(deleteList, ["Tên năm học"], ["name"]);
     deleteList.forEach(async (item) => {
       if (isRemove) {
         const result = await http_deleteOne(SchoolYear, item._id);
       }
     });
     if (isRemove) {
-      run_alert(alert_success("Successfully deleted."));
+      run_alert(alert_success("Đã xoá thành công."));
       refresh();
     }
   }
   if (deleteList.length == 0) {
-    const isRemove = await alert_remove([item], ["SchoolYear"], ["name"]);
+    const isRemove = await alert_remove([item], ["Tên năm học"], ["name"]);
     if (isRemove) {
       const result = await http_deleteOne(SchoolYear, item._id);
       if (!result.error) {
@@ -249,14 +305,52 @@ const refresh = async () => {
   items.value = items.value.map((item) => ({
     ...item,
     checked: false,
-    totalClass: item.classes.length,
-    totalCollectionRates: formatCurrencyVND(
-      item.collectionRates.reduce((acc, r) => acc + r.money, 0)
-    ),
+    startDateFormat: formatDate(item.startDate),
+    endDateFormat: formatDate(item.endDate),
+    childcareCenterName: item.childcareCenter.name,
+    childcareCenterAddress: item.childcareCenter.address,
+    childcareCenterId: item.childcareCenter._id,
+  }));
+  items.value = items.value.filter(
+    (i) => i.childcareCenter._id == childcareCenter.value
+  );
+};
+
+const refreshFilter = async () => {
+  items.value = await http_getAll(SchoolYear);
+  items.value = items.value.map((item) => ({
+    ...item,
+    checked: false,
+    startDateFormat: formatDate(item.startDate),
+    endDateFormat: formatDate(item.endDate),
+    childcareCenterName: item.childcareCenter.name,
+    childcareCenterAddress: item.childcareCenter.address,
+    childcareCenterId: item.childcareCenter._id,
   }));
 };
 
+const filtered = async () => {
+  await refreshFilter();
+  filters();
+  currentPage.value = 1;
+};
+
+const temp_childcareCenter = ref("");
+const isToken = ref("");
+const childcareCenter = ref(sessionStorage.getItem("owner_childcareCenter"));
+const childcareCenterName = ref(
+  sessionStorage.getItem("owner_childcareCenterName")
+);
+
 onBeforeMount(async () => {
-  refresh();
+  isToken.value = await verifyToken();
+  reset();
+  await refresh();
+  childcareCenterValue.value = childcareCenter;
+  temp_childcareCenter.value = childcareCenterName.value;
+  items.value = items.value.filter(
+    (i) => i.childcareCenter._id == childcareCenter.value
+  );
+  childcareCenterList.value = await http_getAll(ChildcareCenter);
 });
 </script>
